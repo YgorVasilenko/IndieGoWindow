@@ -34,7 +34,7 @@ int main(){
 
 
     // Printing in screen log widget
-    for (auto line : logText) {
+    for (auto line : exampleLogText) {
         mainWin.printInLog(line);
     }
 
