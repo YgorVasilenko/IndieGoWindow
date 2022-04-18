@@ -17,7 +17,7 @@ void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {
 }
 
 void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-
+    Window::screens[window]->mouse[button].pressed = action;
 }
 
 void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -37,6 +37,9 @@ void IndieGo::Win::joystick_callback(int jid, int _event) {
 }
 
 void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+    Window::screens[window]->mouse.dX = (Window::screens[window]->mouse.x - xpos) / Window::screens[window]->width;
+    Window::screens[window]->mouse.dY = (Window::screens[window]->mouse.y - ypos) / Window::screens[window]->height;
+
     Window::screens[window]->mouse.x = xpos;
     Window::screens[window]->mouse.y = ypos;
 }
@@ -51,6 +54,10 @@ void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {
 
 void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {
 	
+}
+
+void Window::onFrameStart(){
+    frameStartTime = glfwGetTime();
 }
 
 Manager GUI;
@@ -96,6 +103,23 @@ void Window::clearScreenLog() {
     screen_log_lines_taken = 0;
 }
 
+void Window::onFrameEnd(){
+    clearScreenLog();
+    mouse.dX = 0;
+    mouse.dY = 0;
+
+    framesCounter++;
+    duration = glfwGetTime() - frameStartTime;
+    timeCounter += duration;
+    if (timeCounter > 1.f){
+        fps = framesCounter;
+        framesCounter = 0;
+        // use last measured frametime 
+        frametime = duration;
+        timeCounter = 0.0;
+    }
+}
+
 #include <iostream>
 
 IndieGo::Win::Window::Window(const int & width_, const int & height_, const std::string & name_, Window * parent){
@@ -134,7 +158,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     screenLog.screen_region.x = 0;
 	screenLog.screen_region.y = 0;
 	screenLog.screen_region.w = width;
-	screenLog.screen_region.h = height / 4;
+	screenLog.screen_region.h = height / 2;
 	screenLog.custom_style = true;
 	screenLog.style.elements[COLOR_WINDOW].a = 0;
 	screenLog.border = false;

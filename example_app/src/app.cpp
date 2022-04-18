@@ -43,6 +43,9 @@ int main(){
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+        // obligatory call
+        mainWin.onFrameStart();
+
         checkVal.clear();
         for (auto keyval : mainWin.keyboard.keys){
             checkVal.push_back(keyval.first);
@@ -59,7 +62,9 @@ int main(){
         GUI.displayWidgets(mainWin.name);
         GUI.drawFrameEnd();
 
-        mainWin.clearScreenLog();
+        // obligatory call
+        mainWin.onFrameEnd();
+
         glfwSwapBuffers(mainWin.getScreen());
 	    glfwPollEvents();
     }

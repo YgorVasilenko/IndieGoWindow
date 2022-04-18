@@ -50,8 +50,12 @@ namespace IndieGo {
         };
 
         struct Mouse {
-            double x = 0.0, 
-                y = 0.0;
+            double x = 0.0, dX = 0.0, prevX = 0.0, 
+                y = 0.0, dY = 0.0, prevY = 0.0;
+            std::map<int, ButtonState> keys;
+            ButtonState & operator[](int keycode){
+                return keys[keycode];
+            }
         };
 
         struct Window {
@@ -62,6 +66,11 @@ namespace IndieGo {
             // this will be global app's windows list
             static std::map< GLFWwindow*, Window* > screens;
             static bool gladInitialized;
+
+            // time measurments
+	        unsigned int fps = 0;
+            double duration = 0.0;
+            double frametime = 0.0;
 
             std::string name;
             int width, height;
@@ -76,13 +85,13 @@ namespace IndieGo {
             virtual void Update() {};
             virtual void Render() {};
 
-            
+            void onFrameStart();
+            void onFrameEnd();
 
             // adds line to screen log per frame. 
             // Each frame screen log is cleared, and particular line will be 
             // displayed, only if passed to printOnScreen() during frame processing
             virtual void printOnScreen(const std::string & line);
-            void clearScreenLog();
 
             // adds line to system log. System log is persistent - all lines will 
             // stay, unless explicitly deleted by Window user. 
@@ -107,6 +116,13 @@ namespace IndieGo {
             unsigned int screen_log_lines_taken = 0;
 
             unsigned int system_log_lines_total = 0;
+
+            void clearScreenLog();
+
+            // time measurement
+            double frameStartTime = 0.0;
+            double timeCounter = 0.0;
+            unsigned int framesCounter = 0;
         };
     }
 }
