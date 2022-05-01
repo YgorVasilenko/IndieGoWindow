@@ -35,7 +35,20 @@ namespace IndieGo {
         
         struct ButtonState {
             bool pressed = false;
-            bool checkPress = false;
+            // checks, if button become pressed at this exact frame
+            bool checkPress() {
+               	if (!pressed)
+		            checkPressFlag = false;
+
+                if (pressed && !checkPressFlag) {
+                    checkPressFlag = true;
+                    return true;
+                }
+                return false;
+            }
+
+            private:
+                bool checkPressFlag = false;
         };
 
         struct Keyboard {

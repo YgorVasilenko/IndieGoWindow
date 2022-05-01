@@ -12,11 +12,17 @@
 using namespace IndieGo::UI;
 using namespace IndieGo::Win;
 
+Manager GUI;
+
 void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {
 
 }
 
 void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    // don't process mouse clicks, if mouse is over any widget, but screen log.
+    if (action && GUI.hoveredWidgets[Window::screens[window]->name] && GUI.hoveredWidgets[Window::screens[window]->name]->name != Window::screens[window]->name + "_screenLog"){
+        return;
+    }
     Window::screens[window]->mouse[button].pressed = action;
 }
 
@@ -25,11 +31,13 @@ void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int 
 }
 
 void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int height) {
-
+    Window::screens[window]->width = width;
+    Window::screens[window]->width = height;
 }
 
 void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Window::screens[window]->keyboard[key].pressed = action;
+    GUI.key_input(key, glfwGetKey(window, key) == GLFW_PRESS);
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
@@ -45,11 +53,11 @@ void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, dou
 }
 
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-
+    GUI.scroll(xoffset, yoffset);
 }
 
 void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {
-
+    GUI.char_input(codepoint);
 }
 
 void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {
@@ -58,9 +66,16 @@ void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {
 
 void Window::onFrameStart(){
     frameStartTime = glfwGetTime();
+    // make shure, that log widget is NOT in focus
+    if (GUI.getWidget(name + "_screenLog", name).focused){
+        // TODO : set focus on previously selected widget
+        // GUI.getWidget(name + "_systemLog", name).setFocus = true;
+        if (GUI.prevFocusedWidgets[name])
+            GUI.prevFocusedWidgets[name]->setFocus = true;
+        else 
+            GUI.getWidget(name + "_systemLog", name).setFocus = true;
+    }
 }
-
-Manager GUI;
 
 // logging
 std::string screen_log_line = "_screen_log_line_";
@@ -157,7 +172,10 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     // Screen log initializarion
     screenLog.screen_region.x = 0;
 	screenLog.screen_region.y = 0;
-	screenLog.screen_region.w = width;
+
+    // TODO : fix issue with screen log getting focused
+    // so far just make screen log appear as quarter of screen
+	screenLog.screen_region.w = width / 2;
 	screenLog.screen_region.h = height / 2;
 	screenLog.custom_style = true;
 	screenLog.style.elements[COLOR_WINDOW].a = 0;
@@ -178,8 +196,8 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 
     systemLog.name = systemLogName;
     screenLog.name = screenLogName;
-    GUI.addWidget(name, systemLog);
-    GUI.addWidget(name, screenLog);
+    GUI.addWidget(systemLog, name);
+    GUI.addWidget(screenLog, name);
     logLineName = name + screen_log_line;
     sysLogLineName = name + system_log_line;
 }

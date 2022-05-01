@@ -60,14 +60,16 @@ example output should be:
 
 ```
   Generating Code...
-  glad.c
-LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library [C:\Users\vasilenk\Private2\IndieGoWindow\example_app\build\Window_SM.vcxproj]
-  Window_SM.vcxproj -> C:\Users\vasilenk\Private2\IndieGoWindow\example_app\build\Debug\Window_SM.exe
-  Building Custom Rule C:/Users/vasilenk/Private2/IndieGoWindow/example_app/CMakeLists.txt
+          with
+          [
+              _Other1=unsigned __int64,
+              _Other2=int
+          ]
+  CameraDemo.vcxproj -> C:\Users\vasilenk\Private2\CameraDemo\example_app\build\Debug\CameraDemo.exe
 ```
 
 ## Running example.
 
 ```
-C:\Users\vasilenk\Private2\IndieGoWindow\example_app\build\Debug\Window_SM.exe
+C:\Users\vasilenk\Private2\CameraDemo\example_app\build\Debug\CameraDemo.exe
 ```
