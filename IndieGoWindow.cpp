@@ -2,7 +2,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-// TODO : integrate IndieGoUI, 
 // on-screen auto logging, FPS counter
 // 2 types of logging 
 // - persistent -> usual log, could be flushed to file
@@ -191,7 +190,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 	screenLog.screen_region.w = width / 2;
 	screenLog.screen_region.h = height / 2;
 	screenLog.custom_style = true;
-	screenLog.style.elements[COLOR_WINDOW].a = 0;
+	screenLog.style.elements[UI_COLOR_WINDOW].a = 0;
 	screenLog.border = false;
 	screenLog.title = false;
 	screenLog.minimizable = false;
@@ -205,7 +204,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 	systemLog.screen_region.w = width / 2;
 	systemLog.screen_region.h = height / 4;
 	systemLog.custom_style = true;
-	systemLog.style.elements[COLOR_WINDOW].a = 75;
+	systemLog.style.elements[UI_COLOR_WINDOW].a = 75;
 
     systemLog.name = systemLogName;
     screenLog.name = screenLogName;
