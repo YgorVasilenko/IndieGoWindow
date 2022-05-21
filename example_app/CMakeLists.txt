@@ -2,6 +2,15 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Window_SM VERSION 1.0)
 
+# Assume env vars set
+if(NOT DEFINED INDIEGO_UI)
+    set(INDIEGO_UI $ENV{INDIEGO_UI_HOME})
+endif()
+
+if (NOT DEFINED INDIEGO_UI)
+    message(FATAL_ERROR "INDIEGO_UI path is not defined! Please, provide with -DINDIEGO_UI")
+endif()
+
 set(RENDERER_INCLUDES .. ../os)
 set(RENDERER_SRC ../IndieGoWindow.cpp src/app.cpp src/glad.c)
 
@@ -28,3 +37,5 @@ target_link_libraries(
     Window_SM
     PUBLIC "../lib/glfw3"
 )
+
+set(CMAKE_CXX_FLAGS_DEBUG " /std:c++17 ")

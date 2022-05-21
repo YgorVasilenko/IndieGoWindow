@@ -39,6 +39,7 @@ int main(){
     }
 
     std::string checkVal;
+    double lastScrollOffset = 0;
     while (!glfwWindowShouldClose(mainWin.getScreen())) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -57,6 +58,10 @@ int main(){
         mainWin.printOnScreen("cursor pos X:" + std::to_string(mainWin.mouse.x));
         mainWin.printOnScreen("cursor pos Y:" + std::to_string(mainWin.mouse.y));
         mainWin.printOnScreen("Keyboard buttons pressed: " + checkVal);
+        if (mainWin.scrollOffset != (double)0)
+            lastScrollOffset = mainWin.scrollOffset;
+        mainWin.printOnScreen("Last scroll offset: " + std::to_string(lastScrollOffset));
+        mainWin.printOnScreen("My home folder: " + mainWin.home_dir.string());
 
         GUI.drawFrameStart();
         GUI.displayWidgets(mainWin.name);

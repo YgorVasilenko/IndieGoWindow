@@ -32,7 +32,7 @@ void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int 
 
 void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int height) {
     Window::screens[window]->width = width;
-    Window::screens[window]->width = height;
+    Window::screens[window]->height = height;
 }
 
 void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -48,12 +48,16 @@ void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, dou
     Window::screens[window]->mouse.dX = (Window::screens[window]->mouse.x - xpos) / Window::screens[window]->width;
     Window::screens[window]->mouse.dY = (Window::screens[window]->mouse.y - ypos) / Window::screens[window]->height;
 
+    Window::screens[window]->mouse.prevX = Window::screens[window]->mouse.x;
+    Window::screens[window]->mouse.prevY = Window::screens[window]->mouse.y;
+
     Window::screens[window]->mouse.x = xpos;
     Window::screens[window]->mouse.y = ypos;
 }
 
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     GUI.scroll(xoffset, yoffset);
+    Window::screens[window]->scrollOffset = yoffset;
 }
 
 void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {
@@ -133,9 +137,17 @@ void Window::onFrameEnd(){
         frametime = duration;
         timeCounter = 0.0;
     }
+    scrollOffset = 0;
 }
 
 #include <iostream>
+
+#ifdef _WIN32 // it seems there is no cpp cross-platform way to get executable path
+#include <windows.h>
+#endif
+
+#include <filesystem>
+namespace fs = std::filesystem;
 
 IndieGo::Win::Window::Window(const int & width_, const int & height_, const std::string & name_, Window * parent){
     width = width_;
@@ -157,6 +169,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 
     glfwSetCursorPosCallback(screen, cursor_position_callback);
     glfwSetMouseButtonCallback(screen, mouse_button_callback);
+    glfwSetWindowSizeCallback(screen, window_size_callback);
     glfwSetScrollCallback(screen, scroll_callback);
     glfwSetCharCallback(screen, char_callback);
     glfwSetKeyCallback(screen, key_callback);
@@ -200,6 +213,15 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     GUI.addWidget(screenLog, name);
     logLineName = name + screen_log_line;
     sysLogLineName = name + system_log_line;
+
+#ifdef _WIN32
+    TCHAR binary_path_[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, binary_path_, MAX_PATH);
+    home_dir = std::string(binary_path_);
+#else
+    home_dir = fs::current_path();
+#endif
+    home_dir = home_dir.parent_path();
 }
 
 bool IndieGo::Win::Window::gladInitialized = false;

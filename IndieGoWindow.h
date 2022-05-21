@@ -3,7 +3,8 @@
 #include <map>
 #include <vector>
 #include <string>
-
+#include <filesystem>
+namespace fs = std::filesystem;
 //
 // 1. App should be able to maintain several windows
 // 2. For each window following data should be maintained between frames:
@@ -75,6 +76,11 @@ namespace IndieGo {
             Keyboard keyboard;
             Mouse mouse;
 
+            // Window is close to OS, so let it keep this data
+            fs::path home_dir;
+
+            double scrollOffset = 0;
+            
             // system will send signals to app's GLFWwindow*
             // this will be global app's windows list
             static std::map< GLFWwindow*, Window* > screens;
