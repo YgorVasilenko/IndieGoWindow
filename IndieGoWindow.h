@@ -77,7 +77,7 @@ namespace IndieGo {
             Mouse mouse;
 
             // Window is close to OS, so let it keep this data
-            fs::path home_dir;
+            fs::path home_dir, binary_path;
 
             double scrollOffset = 0;
             
@@ -95,7 +95,7 @@ namespace IndieGo {
             int width, height;
             Window(const int & width_ = 1280, const int & height_ = 800, const std::string & name_ = "IndieGo Window", Window * parent = nullptr);
             GLFWwindow* getScreen() { 
-                for (auto screen : screens){
+                for (auto screen : screens) {
                     if (screen.second == this)
                         return screen.first;
                 }

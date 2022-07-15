@@ -56,6 +56,10 @@ void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, dou
 
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     GUI.scroll(xoffset, yoffset);
+    // don't process scroll, if mouse is over any widget, but screen log.
+    if (GUI.hoveredWidgets[Window::screens[window]->name] && GUI.hoveredWidgets[Window::screens[window]->name]->name != Window::screens[window]->name + "_screenLog") {
+        return;
+    }
     Window::screens[window]->scrollOffset = yoffset;
 }
 
@@ -67,7 +71,19 @@ void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {
 	
 }
 
-void Window::onFrameStart(){
+void Window::onFrameStart() {
+
+#ifdef INDIEGO_ENGINE_DEV
+    for (auto windows : screens) {
+        if (windows.second == this) {
+            // make context current here to be able to use multiple windows in one app
+            // TODO : get rid of iteration over map?
+            glfwMakeContextCurrent(windows.first);
+            break;
+        }
+    }
+#endif
+
     frameStartTime = glfwGetTime();
     // make shure, that log widget is NOT in focus
     if (GUI.getWidget(name + "_screenLog", name).focused){
@@ -213,14 +229,22 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     logLineName = name + screen_log_line;
     sysLogLineName = name + system_log_line;
 
+    if (!parent) {
 #ifdef _WIN32
-    TCHAR binary_path_[MAX_PATH] = { 0 };
-	GetModuleFileName(NULL, binary_path_, MAX_PATH);
-    home_dir = std::string(binary_path_);
+        TCHAR binary_path_[MAX_PATH] = { 0 };
+        GetModuleFileName(NULL, binary_path_, MAX_PATH);
+        binary_path = std::string(binary_path_);
 #else
-    home_dir = fs::current_path();
+        home_dir = fs::current_path();
 #endif
-    home_dir = home_dir.parent_path();
+        home_dir = binary_path.parent_path();
+        std::cout << "Hello! My homedir is " << home_dir.string() << std::endl;
+    } else {
+        home_dir = parent->home_dir;
+
+        // switch context back to parent
+        glfwMakeContextCurrent(parent->getScreen());
+    }
 }
 
 bool IndieGo::Win::Window::gladInitialized = false;
