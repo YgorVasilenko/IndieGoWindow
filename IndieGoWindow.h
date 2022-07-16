@@ -28,6 +28,7 @@ namespace IndieGo {
         extern void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
         extern void framebuffer_size_callback(GLFWwindow* window, int width, int height);
         extern void window_size_callback(GLFWwindow* window, int width, int height);
+        extern void window_close_callback(GLFWwindow* window);
         extern void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
         extern void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
         extern void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -84,6 +85,9 @@ namespace IndieGo {
             // system will send signals to app's GLFWwindow*
             // this will be global app's windows list
             static std::map< GLFWwindow*, Window* > screens;
+
+            // Created first
+            static GLFWwindow * mainScreen;
             static bool gladInitialized;
 
             // time measurments
@@ -94,6 +98,10 @@ namespace IndieGo {
             std::string name;
             int width, height;
             Window(const int & width_ = 1280, const int & height_ = 800, const std::string & name_ = "IndieGo Window", Window * parent = nullptr);
+            
+            // Removes widgets and win ptr from GUI manager
+            ~Window();
+
             GLFWwindow* getScreen() { 
                 for (auto screen : screens) {
                     if (screen.second == this)
