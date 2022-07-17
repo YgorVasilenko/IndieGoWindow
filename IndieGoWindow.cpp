@@ -103,7 +103,8 @@ void Window::onFrameStart() {
     }
 #endif
 
-    frameStartTime = glfwGetTime();
+    // frameStartTime = glfwGetTime();
+    frameStartTime = std::chrono::high_resolution_clock::now();
     // make shure, that log widget is NOT in focus
     if (GUI.getWidget(name + "_screenLog", name).focused){
         // TODO : set focus on previously selected widget
@@ -162,9 +163,10 @@ void Window::onFrameEnd(){
     mouse.dY = 0;
 
     framesCounter++;
-    duration = glfwGetTime() - frameStartTime;
+    // duration = glfwGetTime() - frameStartTime;
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - frameStartTime).count();
     timeCounter += duration;
-    if (timeCounter > 1.f){
+    if (timeCounter > 1000000.f){
         fps = framesCounter;
         framesCounter = 0;
         // use last measured frametime 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <chrono>
 namespace fs = std::filesystem;
 //
 // 1. App should be able to maintain several windows
@@ -147,7 +148,8 @@ namespace IndieGo {
             void clearScreenLog();
 
             // time measurement
-            double frameStartTime = 0.0;
+            // double frameStartTime = 0.0;
+            std::chrono::steady_clock::time_point frameStartTime;
             double timeCounter = 0.0;
             unsigned int framesCounter = 0;
         };
