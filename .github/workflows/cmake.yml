@@ -1,0 +1,43 @@
+name: CMake
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9.0
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+
+    - name: repo project checkout
+      shell: pwsh
+      working-directory: ${{github.workspace}}/IndieGo
+      run: | 
+        python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git
+        python ../repo sync
+        
+    # - name: generate project
+    #   run: cmake example_app -B ${{github.workspace}}/example_app/build -DCI_BUILD=1
+
+    # - name: Build
+    #   run: cmake --build ${{github.workspace}}/example_app/build
+
+    # TODO : try getting hosts with OpenGL3 installed, or place libriaries into file
+    # - name: Run
+    #   working-directory: ${{github.workspace}}/example_app/build
+    #   run: Debug/UI_map_OpenGL.exe
+      
