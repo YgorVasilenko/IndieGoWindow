@@ -28,7 +28,9 @@ jobs:
       run: | 
         mkdir IndieGo
         cd IndieGo
-        python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git --quiet
+        git config --global user.name "Igor Vasilenko"
+        git config --global user.email "vasilenko.i.d.93@gmail.com"
+        python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git
         python ../repo sync
         get-childitem
 
