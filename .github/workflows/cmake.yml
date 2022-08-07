@@ -25,11 +25,13 @@ jobs:
 
     - name: repo project checkout
       shell: pwsh
-      working-directory: ${{github.workspace}}/IndieGo
       run: | 
-        python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git
+        mkdir IndieGo
+        cd IndieGo
+        python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git --quiet
         python ../repo sync
-        
+        get-childitem
+
     # - name: generate project
     #   run: cmake example_app -B ${{github.workspace}}/example_app/build -DCI_BUILD=1
 
