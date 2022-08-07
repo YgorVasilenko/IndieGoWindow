@@ -63,9 +63,9 @@ int main(){
         mainWin.printOnScreen("Last scroll offset: " + std::to_string(lastScrollOffset));
         mainWin.printOnScreen("My home folder: " + mainWin.home_dir.string());
 
-        GUI.drawFrameStart();
+        GUI.drawFrameStart(mainWin.name);
         GUI.displayWidgets(mainWin.name);
-        GUI.drawFrameEnd();
+        GUI.drawFrameEnd(mainWin.name);
 
         // obligatory call
         mainWin.onFrameEnd();
