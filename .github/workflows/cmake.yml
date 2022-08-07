@@ -30,7 +30,7 @@ jobs:
         cd IndieGo
         git config --global user.name "Igor Vasilenko"
         git config --global user.email "vasilenko.i.d.93@gmail.com"
-        python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git
+        write-host N | python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git
         python ../repo sync
         get-childitem
 
