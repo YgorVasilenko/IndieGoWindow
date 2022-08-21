@@ -180,6 +180,7 @@ void Window::onFrameEnd(){
 
 #ifdef _WIN32 // it seems there is no cpp cross-platform way to get executable path
 #include <windows.h>
+// #include <tchar.h>
 #endif
 
 #include <filesystem>
@@ -260,6 +261,11 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
         TCHAR binary_path_[MAX_PATH] = { 0 };
         GetModuleFileName(NULL, binary_path_, MAX_PATH);
         binary_path = std::string(binary_path_);
+
+        SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+        /*DWORD dwPriClass;
+        dwPriClass = GetPriorityClass(GetCurrentProcess());
+        _tprintf(TEXT("Current priority class is 0x%x\n"), dwPriClass);*/
 #else
         home_dir = fs::current_path();
 #endif
