@@ -104,7 +104,7 @@ void Window::onFrameStart() {
 #endif
 
     // frameStartTime = glfwGetTime();
-    frameStartTime = std::chrono::high_resolution_clock::now();
+    // frameStartTime = std::chrono::high_resolution_clock::now();
     // make shure, that log widget is NOT in focus
     if (GUI.getWidget(name + "_screenLog", name).focused){
         // TODO : set focus on previously selected widget
@@ -164,7 +164,9 @@ void Window::onFrameEnd(){
 
     framesCounter++;
     // duration = glfwGetTime() - frameStartTime;
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - frameStartTime).count();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - frameStartTime).count();
+    frameStartTime = currentTime;
     timeCounter += duration;
     if (timeCounter > 1000000.f){
         fps = framesCounter;
@@ -255,6 +257,9 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     GUI.addWidget(screenLog, name);
     logLineName = name + screen_log_line;
     sysLogLineName = name + system_log_line;
+
+    // initialize frame time here, to have sane duration
+    frameStartTime = std::chrono::high_resolution_clock::now();
 
     if (!parent) {
 #ifdef _WIN32
