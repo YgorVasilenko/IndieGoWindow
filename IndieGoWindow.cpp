@@ -13,11 +13,6 @@ using namespace IndieGo::Win;
 
 Manager GUI;
 
-struct GuiInitData {
-    std::string winID;
-    GLFWwindow* window;
-};
-
 void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {
 
 }
@@ -37,6 +32,9 @@ void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int 
 void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int height) {
     Window::screens[window]->width = width;
     Window::screens[window]->height = height;
+
+    GUI.screen_size.w = width;
+    GUI.screen_size.h = height;
 }
 
 #include <iostream>
@@ -46,9 +44,6 @@ void IndieGo::Win::window_close_callback(GLFWwindow* window) {
 
 void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Window::screens[window]->keyboard[key].pressed = action;
-    /*GuiInitData w_data;
-    w_data.window = window;
-    w_data.winID = Window::screens[window]->name;*/
     GUI.key_input(&Window::screens[window]->name, key, glfwGetKey(window, key) == GLFW_PRESS);
 }
 
@@ -68,9 +63,6 @@ void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, dou
 }
 
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    /*GuiInitData w_data;
-    w_data.window = window;
-    w_data.winID = Window::screens[window]->name;*/
     GUI.scroll(&Window::screens[window]->name, xoffset, yoffset);
     // don't process scroll, if mouse is over any widget, but screen log.
     if (GUI.hoveredWidgets[Window::screens[window]->name] && GUI.hoveredWidgets[Window::screens[window]->name]->name != Window::screens[window]->name + "_screenLog") {
@@ -80,9 +72,6 @@ void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yo
 }
 
 void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {
-    /*GuiInitData w_data;
-    w_data.window = window;
-    w_data.winID = Window::screens[window]->name;*/
     GUI.char_input(&Window::screens[window]->name, codepoint);
 }
 
@@ -103,8 +92,6 @@ void Window::onFrameStart() {
     }
 #endif
 
-    // frameStartTime = glfwGetTime();
-    // frameStartTime = std::chrono::high_resolution_clock::now();
     // make shure, that log widget is NOT in focus
     if (GUI.getWidget(name + "_screenLog", name).focused){
         // TODO : set focus on previously selected widget
@@ -163,7 +150,6 @@ void Window::onFrameEnd(){
     mouse.dY = 0;
 
     framesCounter++;
-    // duration = glfwGetTime() - frameStartTime;
     auto currentTime = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - frameStartTime).count();
     frameStartTime = currentTime;
@@ -193,10 +179,6 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     height = height_;
     name = name_;
     GLFWwindow * screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-    GuiInitData g_init;
-
-    g_init.window = screen;
-    g_init.winID = name;
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
@@ -207,10 +189,13 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
         gladInitialized = true;
         mainScreen = screen;
         // GUI gets initialized with first created window
-        GUI.init(&g_init);
+        GUI.init(name, screen);
     } else {
-        GUI.addWindow(&g_init);
+        GUI.addWindow(name, screen);
     }
+
+    GUI.screen_size.w = width;
+    GUI.screen_size.h = height;
 
     glfwSetCursorPosCallback(screen, cursor_position_callback);
     glfwSetMouseButtonCallback(screen, mouse_button_callback);
@@ -232,8 +217,8 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 
     // TODO : fix issue with screen log getting focused
     // so far just make screen log appear as quarter of screen
-    screenLog.screen_region.w = width / 2;
-    screenLog.screen_region.h = height / 2;
+    screenLog.screen_region.w = 0.5f;
+    screenLog.screen_region.h = 0.5f;
     screenLog.custom_style = true;
     screenLog.style.elements[UI_COLOR_WINDOW].a = 0;
     screenLog.border = false;
@@ -244,10 +229,10 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 
 
     // System log widget initialization
-    systemLog.screen_region.x = 0;
-    systemLog.screen_region.y = height - height / 4;
-    systemLog.screen_region.w = width / 2;
-    systemLog.screen_region.h = height / 4;
+    systemLog.screen_region.x = 0.f;
+    systemLog.screen_region.y = 0.75f;
+    systemLog.screen_region.w = 0.5f;
+    systemLog.screen_region.h = 0.5f;
     systemLog.custom_style = true;
     systemLog.style.elements[UI_COLOR_WINDOW].a = 75;
 
@@ -268,9 +253,6 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
         binary_path = std::string(binary_path_);
 
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-        /*DWORD dwPriClass;
-        dwPriClass = GetPriorityClass(GetCurrentProcess());
-        _tprintf(TEXT("Current priority class is 0x%x\n"), dwPriClass);*/
 #else
         home_dir = fs::current_path();
 #endif
@@ -286,14 +268,11 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 
 IndieGo::Win::Window::~Window() {
     std::cout << "[WINDOW::INFO] destructor for " << name << " is called!" << std::endl;
-    GuiInitData g_init;
-    g_init.window = getScreen();
-    g_init.winID = name;
-    GUI.removeWindow(&g_init);
+    GUI.removeWindow(name, getScreen());
     screens.erase(
         screens.find(getScreen())
     );
-    glfwDestroyWindow(g_init.window);
+    glfwDestroyWindow(getScreen());
 }
 
 bool IndieGo::Win::Window::gladInitialized = false;
