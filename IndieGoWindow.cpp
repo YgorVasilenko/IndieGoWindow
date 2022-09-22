@@ -95,7 +95,6 @@ void Window::onFrameStart() {
     // make shure, that log widget is NOT in focus
     if (GUI.getWidget(name + "_screenLog", name).focused){
         // TODO : set focus on previously selected widget
-        // GUI.getWidget(name + "_systemLog", name).setFocus = true;
         if (GUI.prevFocusedWidgets[name])
             GUI.prevFocusedWidgets[name]->setFocus = true;
         else 
