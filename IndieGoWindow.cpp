@@ -111,7 +111,7 @@ void Window::printInLog(const std::string & line) {
     std::string currLineName = sysLogLineName + std::to_string(system_log_lines_total);
     WIDGET & systemLog = GUI.widgets[name][systemLogName];
     UI_elements_map & UIMap = GUI.UIMaps[name];
-    UIMap.addElement(currLineName, UI_STRING_LABEL, &systemLog, system_log_lines_total);
+    UIMap.addElement(currLineName, UI_STRING_LABEL, &systemLog);
     UIMap[currLineName].text_align = LEFT;
     UIMap[currLineName].label = line;
     system_log_lines_total++;
@@ -124,7 +124,7 @@ void Window::printOnScreen(const std::string & line) {
     if (screen_log_lines_taken >= screen_log_lines_total) {
         // TODO : check, if screen log widget should be extended
         WIDGET & screenLog = GUI.widgets[name][screenLogName];
-        UIMap.addElement(currLineName, UI_STRING_LABEL, &screenLog, screen_log_lines_total);
+        UIMap.addElement(currLineName, UI_STRING_LABEL, &screenLog);
         UIMap[currLineName].text_align = LEFT;
         screen_log_lines_total++;
     }
