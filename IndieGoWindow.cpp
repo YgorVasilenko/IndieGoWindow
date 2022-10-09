@@ -44,6 +44,8 @@ void IndieGo::Win::window_close_callback(GLFWwindow* window) {
 
 void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Window::screens[window]->keyboard[key].pressed = action;
+    Window::screens[window]->keyboard.lastPressedKey = key;
+    Window::screens[window]->keyboard.pressFlag = true;
     GUI.key_input(&Window::screens[window]->name, key, glfwGetKey(window, key) == GLFW_PRESS);
 }
 
@@ -80,7 +82,6 @@ void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {
 }
 
 void Window::onFrameStart() {
-
 #ifdef INDIEGO_ENGINE_DEV
     for (auto windows : screens) {
         if (windows.second == this) {
@@ -161,6 +162,9 @@ void Window::onFrameEnd(){
         timeCounter = 0.0;
     }
     scrollOffset = 0;
+
+    // this resetted at the end of frame, because callbacks evoked before onFrameStart()
+    keyboard.pressFlag = false;
 }
 
 // #include <iostream>

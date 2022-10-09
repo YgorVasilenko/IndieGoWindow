@@ -55,7 +55,14 @@ namespace IndieGo {
         };
 
         struct Keyboard {
+            // true if press happened in current frame
+            bool pressFlag = false;
+            
             std::map<int, ButtonState> keys;
+            int lastPressedKey = -1;
+            ButtonState & getLastPressedKey() {
+                return keys[lastPressedKey];
+            }
             ButtonState & operator[](int keycode){
                 return keys[keycode];
             }
