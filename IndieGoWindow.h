@@ -136,6 +136,8 @@ namespace IndieGo {
                 // TODO
             };
 
+
+            unsigned int framesCounter = 0;
         private:
 
             // logging
@@ -158,7 +160,7 @@ namespace IndieGo {
             // double frameStartTime = 0.0;
             std::chrono::steady_clock::time_point frameStartTime;
             double timeCounter = 0.0;
-            unsigned int framesCounter = 0;
+            // unsigned int framesCounter = 0;
         };
     }
 }
