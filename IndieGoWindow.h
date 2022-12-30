@@ -84,6 +84,7 @@ namespace IndieGo {
         struct Window {
             Keyboard keyboard;
             Mouse mouse;
+            bool shouldClose = false;
 
             // Window is close to OS, so let it keep this data
             fs::path home_dir, binary_path;

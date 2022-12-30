@@ -93,6 +93,7 @@ void Window::onFrameStart() {
     }
 #endif
 
+#ifndef RELEASE_BUILD
     // make shure, that log widget is NOT in focus
     if (GUI.getWidget(name + "_screenLog", name).focused){
         // TODO : set focus on previously selected widget
@@ -101,6 +102,7 @@ void Window::onFrameStart() {
         else 
             GUI.getWidget(name + "_systemLog", name).setFocus = true;
     }
+#endif
 }
 
 // logging
@@ -108,6 +110,7 @@ std::string screen_log_line = "_screen_log_line_";
 std::string system_log_line = "_system_log_line_";
 
 void Window::printInLog(const std::string & line) {
+#ifndef RELEASE_BUILD
     std::string currLineName = sysLogLineName + std::to_string(system_log_lines_total);
     WIDGET & systemLog = GUI.widgets[name][systemLogName];
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -115,9 +118,11 @@ void Window::printInLog(const std::string & line) {
     UIMap[currLineName].text_align = LEFT;
     UIMap[currLineName].label = line;
     system_log_lines_total++;
+#endif
 }
 
 void Window::printOnScreen(const std::string & line) {
+#ifndef RELEASE_BUILD
     UI_elements_map & UIMap = GUI.UIMaps[name];
     std::string currLineName = logLineName + std::to_string(screen_log_lines_taken);
 
@@ -131,9 +136,11 @@ void Window::printOnScreen(const std::string & line) {
 
     UIMap[currLineName].label = line;
     screen_log_lines_taken++;
+#endif
 }
 
 void Window::clearScreenLog() {
+#ifndef RELEASE_BUILD
     if ( screen_log_lines_total == 0 ) return;
     std::string currLineName;
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -142,6 +149,7 @@ void Window::clearScreenLog() {
         UIMap[currLineName].label = "";
     }
     screen_log_lines_taken = 0;
+#endif
 }
 
 void Window::onFrameEnd(){
@@ -165,6 +173,17 @@ void Window::onFrameEnd(){
 
     // this resetted at the end of frame, because callbacks evoked before onFrameStart()
     keyboard.pressFlag = false;
+    
+    if (shouldClose) {
+        GLFWwindow* m_screen = NULL;
+        for (auto screen : screens) {
+            if (screen.second->name == name) {
+                m_screen = screen.first;
+                break;
+            }
+        }
+        glfwSetWindowShouldClose(m_screen, 1);
+    }
 }
 
 // #include <iostream>
@@ -181,7 +200,9 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     width = width_;
     height = height_;
     name = name_;
-    GLFWwindow * screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+    //glfwGetPrimaryMonitor()
+    // GLFWwindow * screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+    GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), glfwGetPrimaryMonitor(), NULL);
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
@@ -208,6 +229,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     glfwSetCharCallback(screen, char_callback);
     glfwSetKeyCallback(screen, key_callback);
 
+#ifndef RELEASE_BUILD
     // initialize UIMap for this window
     // WIDGETS configured in *some* place of program,
     // then COPIED to UIMap. 
@@ -245,6 +267,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     GUI.addWidget(screenLog, name);
     logLineName = name + screen_log_line;
     sysLogLineName = name + system_log_line;
+#endif
 
     // initialize frame time here, to have sane duration
     frameStartTime = std::chrono::high_resolution_clock::now();
