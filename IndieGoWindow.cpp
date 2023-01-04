@@ -201,8 +201,8 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     height = height_;
     name = name_;
     //glfwGetPrimaryMonitor()
-    // GLFWwindow * screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-    GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), glfwGetPrimaryMonitor(), NULL);
+    GLFWwindow * screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+    // GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), glfwGetPrimaryMonitor(), NULL);
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
