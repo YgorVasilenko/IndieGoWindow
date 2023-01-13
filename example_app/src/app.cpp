@@ -62,6 +62,9 @@ int main(){
             lastScrollOffset = mainWin.scrollOffset;
         mainWin.printOnScreen("Last scroll offset: " + std::to_string(lastScrollOffset));
         mainWin.printOnScreen("My home folder: " + mainWin.home_dir.string());
+        
+        std::string systemLocale = mainWin.locale == IndieGo::LANG_LOCALE::rus ? "russian" : "english";
+        mainWin.printOnScreen("Default system locale: " + systemLocale);
 
         GUI.drawFrameStart(mainWin.name);
         GUI.displayWidgets(mainWin.name);

@@ -251,7 +251,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     screenLog.minimizable = false;
     screenLog.scalable = false;
     screenLog.movable = false;
-
+    screenLog.has_scrollbar = false;
 
     // System log widget initialization
     systemLog.screen_region.x = 0.f;
@@ -272,6 +272,15 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     // initialize frame time here, to have sane duration
     frameStartTime = std::chrono::high_resolution_clock::now();
 
+#ifdef _WIN32
+    // get locale
+    if (GetUserDefaultLCID() == 0x0419){
+        locale = LANG_LOCALE::rus;
+    } else {
+        locale = LANG_LOCALE::eng;
+    }
+    
+#endif
     if (!parent) {
 #ifdef _WIN32
         TCHAR binary_path_[MAX_PATH] = { 0 };

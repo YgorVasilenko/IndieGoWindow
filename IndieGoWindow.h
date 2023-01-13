@@ -21,6 +21,10 @@ namespace IndieGo {
     namespace UI {
         struct WIDGET;
     }
+    enum class LANG_LOCALE {
+        rus, eng
+    };
+
 	namespace Win {
     
         // GLFW-dependent callbacks. TODO - add more
@@ -85,7 +89,8 @@ namespace IndieGo {
             Keyboard keyboard;
             Mouse mouse;
             bool shouldClose = false;
-
+            LANG_LOCALE locale = LANG_LOCALE::rus;
+            
             // Window is close to OS, so let it keep this data
             fs::path home_dir, binary_path;
 
