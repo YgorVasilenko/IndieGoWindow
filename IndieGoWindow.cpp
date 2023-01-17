@@ -1,6 +1,7 @@
 #include <IndieGoWindow.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <fstream>
 
 // on-screen auto logging, FPS counter
 // 2 types of logging 
@@ -50,7 +51,26 @@ void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int a
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
+    if (_event == GLFW_CONNECTED) {
+		// The joystick was connected
+		IndieGo::Win::Window::attached_joysticks[jid] = 1;
+		if (IndieGo::Win::Window::main_joystick == -1)
+			IndieGo::Win::Window::main_joystick = jid;
+	} else if (_event == GLFW_DISCONNECTED) {
+		// The joystick was disconnected
+		IndieGo::Win::Window::attached_joysticks[jid] = -1;
+		if (IndieGo::Win::Window::main_joystick == jid) {
+            IndieGo::Win::Window::main_joystick = -1;
 
+			// Go through all joystick ports, get attached
+			for (int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
+				if (IndieGo::Win::Window::attached_joysticks[i] != -1) {
+                    IndieGo::Win::Window::main_joystick = IndieGo::Win::Window::attached_joysticks[i];
+                    break;
+                };
+			}
+		}
+	}
 }
 
 void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -92,6 +112,23 @@ void Window::onFrameStart() {
         }
     }
 #endif
+
+    // joysticks input fetch
+    GLFWgamepadstate state;
+    for (int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
+        if (attached_joysticks[i] != -1) {
+            glfwGetGamepadState(i, &state);
+            // fetch joystick buttons
+            for (int j = 0; j < 15; j++) {
+                joystick_state[i][j].pressed = state.buttons[j];
+            }
+
+            // fetch axes
+            for (int j = 0; j < 5; j++) {
+                joystick_state[i].sticks_input[j] = state.axes[j];
+            }
+        }
+    }
 
 #ifndef RELEASE_BUILD
     // make shure, that log widget is NOT in focus
@@ -200,9 +237,13 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     width = width_;
     height = height_;
     name = name_;
-    //glfwGetPrimaryMonitor()
-    GLFWwindow * screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-    // GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), glfwGetPrimaryMonitor(), NULL);
+
+#ifdef FULLSCREEN
+    GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), glfwGetPrimaryMonitor(), NULL);
+#else
+    GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+#endif
+
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
@@ -228,6 +269,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     glfwSetScrollCallback(screen, scroll_callback);
     glfwSetCharCallback(screen, char_callback);
     glfwSetKeyCallback(screen, key_callback);
+    glfwSetJoystickCallback(joystick_callback);
 
 #ifndef RELEASE_BUILD
     // initialize UIMap for this window
@@ -299,6 +341,27 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
         // switch context back to parent
         glfwMakeContextCurrent(parent->getScreen());
     }
+
+    // try loading mappings
+    std::ifstream mappings_data(fs::path(home_dir).append("gamecontrollerdb.txt"), std::ios::binary);
+    if (mappings_data.is_open()) {
+        mappings_data.seekg(0, mappings_data.end);
+        std::size_t size = mappings_data.tellg();
+        char* mappings = new char[size];
+        mappings_data.seekg(0, mappings_data.beg);
+        mappings_data.read(mappings, size);
+        glfwUpdateGamepadMappings(mappings);
+    }
+
+    // check if joystick is plugged
+    for (int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
+        attached_joysticks[i] = -1;
+        if (glfwJoystickPresent(i) && glfwJoystickIsGamepad(i)) {
+            attached_joysticks[i] = 0;
+            if (main_joystick == -1)
+                main_joystick = i;
+        }
+    }
 }
 
 IndieGo::Win::Window::~Window() {
@@ -313,3 +376,5 @@ IndieGo::Win::Window::~Window() {
 bool IndieGo::Win::Window::gladInitialized = false;
 std::map< GLFWwindow*, IndieGo::Win::Window* > IndieGo::Win::Window::screens = {};
 GLFWwindow * IndieGo::Win::Window::mainScreen = NULL;
+int IndieGo::Win::Window::attached_joysticks[GLFW_JOYSTICK_LAST] = { 0 };
+int IndieGo::Win::Window::main_joystick = -1;

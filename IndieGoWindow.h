@@ -16,6 +16,8 @@ namespace fs = std::filesystem;
 
 struct GLFWwindow;
 
+// from glfw header
+#define MAX_GAMEPADS 15
 
 namespace IndieGo {
     namespace UI {
@@ -42,6 +44,7 @@ namespace IndieGo {
         
         struct ButtonState {
             bool pressed = false;
+            
             // checks, if button become pressed at this exact frame
             bool checkPress() {
                	if (!pressed)
@@ -72,8 +75,12 @@ namespace IndieGo {
             }
         };
 
-        struct Joystick {
-            // TODO - joystick input
+        // Gamepad is a keyboard with analog sticks
+        struct Gamepad : public Keyboard {
+            enum AXES {
+                lx, ly, rx, ry
+            };
+            std::map<int, float> sticks_input;
         };
 
         struct Mouse {
@@ -88,6 +95,11 @@ namespace IndieGo {
         struct Window {
             Keyboard keyboard;
             Mouse mouse;
+
+            Gamepad joystick_state[MAX_GAMEPADS];
+            static int attached_joysticks[MAX_GAMEPADS];
+            static int main_joystick;
+
             bool shouldClose = false;
             LANG_LOCALE locale = LANG_LOCALE::rus;
             
