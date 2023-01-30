@@ -101,6 +101,29 @@ void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {
 	
 }
 
+void Window::restore() {
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    for (auto windows : screens) {
+        if (windows.second == this) {
+            glfwSetWindowMonitor(windows.first, nullptr, winPos[0], winPos[1], width, height, 0);
+            break;
+        }
+    }
+    _fullscreen = false;
+}
+
+void Window::goFullscreen() {
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    for (auto windows : screens) {
+        if (windows.second == this) {
+            glfwGetWindowPos(windows.first, &winPos[0], &winPos[1]);
+            glfwSetWindowMonitor(windows.first, monitor, 0, 0, width, height, 0);
+            break;
+        }
+    }
+    _fullscreen = true;
+}
+
 void Window::onFrameStart() {
 #ifdef INDIEGO_ENGINE_DEV
     for (auto windows : screens) {
@@ -233,17 +256,13 @@ void Window::onFrameEnd(){
 #include <filesystem>
 namespace fs = std::filesystem;
 
-IndieGo::Win::Window::Window(const int & width_, const int & height_, const std::string & name_, Window * parent){
+IndieGo::Win::Window::Window(const int & width_, const int & height_, const std::string & name_, Window * parent, bool fullscreen){
     width = width_;
     height = height_;
     name = name_;
+    _fullscreen = fullscreen;
 
-#ifdef FULLSCREEN
-    GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), glfwGetPrimaryMonitor(), NULL);
-#else
     GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-#endif
-
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
@@ -257,6 +276,10 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
         GUI.init(name, screen);
     } else {
         GUI.addWindow(name, screen);
+    }
+
+    if (fullscreen) {
+        goFullscreen();
     }
 
     GUI.screen_size.w = width;
@@ -284,6 +307,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
 
     // TODO : fix issue with screen log getting focused
     // so far just make screen log appear as quarter of screen
+    screenLog.screen_region.y = 0.1f;
     screenLog.screen_region.w = 0.5f;
     screenLog.screen_region.h = 0.5f;
     screenLog.custom_style = true;
@@ -294,6 +318,9 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     screenLog.scalable = false;
     screenLog.movable = false;
     screenLog.has_scrollbar = false;
+    screenLog.style.elements[UI_COLOR_TEXT].r = 255;
+    screenLog.style.elements[UI_COLOR_TEXT].g = 255;
+    screenLog.style.elements[UI_COLOR_TEXT].b = 255;
 
     // System log widget initialization
     systemLog.screen_region.x = 0.f;
@@ -302,6 +329,9 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     systemLog.screen_region.h = 0.5f;
     systemLog.custom_style = true;
     systemLog.style.elements[UI_COLOR_WINDOW].a = 75;
+    systemLog.style.elements[UI_COLOR_TEXT].r = 255;
+    systemLog.style.elements[UI_COLOR_TEXT].g = 255;
+    systemLog.style.elements[UI_COLOR_TEXT].b = 255;
 
     systemLog.name = systemLogName;
     screenLog.name = screenLogName;

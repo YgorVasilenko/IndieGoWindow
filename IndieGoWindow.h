@@ -123,7 +123,7 @@ namespace IndieGo {
 
             std::string name;
             int width, height;
-            Window(const int & width_ = 1280, const int & height_ = 800, const std::string & name_ = "IndieGo Window", Window * parent = nullptr);
+            Window(const int & width_ = 1280, const int & height_ = 800, const std::string & name_ = "IndieGo Window", Window * parent = nullptr, bool fullscreen = false);
             
             // Removes widgets and win ptr from GUI manager
             ~Window();
@@ -137,6 +137,10 @@ namespace IndieGo {
             }
             virtual void Update() {};
             virtual void Render() {};
+
+            // restores window (f.e. from fullscreen)
+            void restore();
+            void goFullscreen();
 
             void onFrameStart();
             void onFrameEnd();
@@ -156,8 +160,9 @@ namespace IndieGo {
 
 
             unsigned int framesCounter = 0;
+            bool isFullscreen() { return _fullscreen; };
         private:
-
+            bool _fullscreen = false;
             // logging
             std::string systemLogName, screenLogName, logLineName, sysLogLineName;
 
@@ -179,6 +184,7 @@ namespace IndieGo {
             std::chrono::steady_clock::time_point frameStartTime;
             double timeCounter = 0.0;
             // unsigned int framesCounter = 0;
+            int winPos[2] = { 0, 0 };
         };
     }
 }
