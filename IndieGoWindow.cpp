@@ -153,7 +153,7 @@ void Window::onFrameStart() {
         }
     }
 
-#ifndef RELEASE_BUILD
+#if !defined RELEASE_BUILD || defined EDITOR
     // make shure, that log widget is NOT in focus
     if (GUI.getWidget(name + "_screenLog", name).focused){
         // TODO : set focus on previously selected widget
@@ -170,7 +170,7 @@ std::string screen_log_line = "_screen_log_line_";
 std::string system_log_line = "_system_log_line_";
 
 void Window::printInLog(const std::string & line) {
-#ifndef RELEASE_BUILD
+#if !defined RELEASE_BUILD || defined EDITOR
     std::string currLineName = sysLogLineName + std::to_string(system_log_lines_total);
     WIDGET & systemLog = GUI.widgets[name][systemLogName];
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -182,7 +182,7 @@ void Window::printInLog(const std::string & line) {
 }
 
 void Window::printOnScreen(const std::string & line) {
-#ifndef RELEASE_BUILD
+#if !defined RELEASE_BUILD || defined EDITOR
     UI_elements_map & UIMap = GUI.UIMaps[name];
     std::string currLineName = logLineName + std::to_string(screen_log_lines_taken);
 
@@ -200,7 +200,7 @@ void Window::printOnScreen(const std::string & line) {
 }
 
 void Window::clearScreenLog() {
-#ifndef RELEASE_BUILD
+#if !defined RELEASE_BUILD || defined EDITOR
     if ( screen_log_lines_total == 0 ) return;
     std::string currLineName;
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -294,7 +294,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     glfwSetKeyCallback(screen, key_callback);
     glfwSetJoystickCallback(joystick_callback);
 
-#ifndef RELEASE_BUILD
+#if !defined RELEASE_BUILD || defined EDITOR
     // initialize UIMap for this window
     // WIDGETS configured in *some* place of program,
     // then COPIED to UIMap. 
