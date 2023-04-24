@@ -56,8 +56,14 @@ std::vector<std::string> exampleLogText  = {
 int main(){
   	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+#ifdef __APPLE__
+  /* We need to explicitly ask for a 3.2 context on OS X */
+    glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     Window mainWin(WIDTH, HEIGHT);
     glViewport(0, 0, WIDTH, HEIGHT);
@@ -85,13 +91,13 @@ int main(){
 
         // Display input data on screen
         mainWin.printOnScreen(mainWin.name);
-        /*mainWin.printOnScreen("cursor pos X:" + std::to_string(mainWin.mouse.x));
-        mainWin.printOnScreen("cursor pos Y:" + std::to_string(mainWin.mouse.y));*/
-        // mainWin.printOnScreen("Keyboard buttons pressed: " + checkVal);
+        mainWin.printOnScreen("cursor pos X:" + std::to_string(mainWin.mouse.x));
+        mainWin.printOnScreen("cursor pos Y:" + std::to_string(mainWin.mouse.y));
+        mainWin.printOnScreen("Keyboard buttons pressed: " + checkVal);
         /*if (mainWin.scrollOffset != (double)0)
             lastScrollOffset = mainWin.scrollOffset;*/
-        // mainWin.printOnScreen("Last scroll offset: " + std::to_string(lastScrollOffset));
-        // mainWin.printOnScreen("My home folder: " + mainWin.home_dir.string());
+        mainWin.printOnScreen("Last scroll offset: " + std::to_string(lastScrollOffset));
+        mainWin.printOnScreen("My home folder: " + mainWin.home_dir.string());
         
         /*std::string systemLocale = mainWin.locale == IndieGo::LANG_LOCALE::rus ? "russian" : "english";
         mainWin.printOnScreen("Default system locale: " + systemLocale);*/
