@@ -248,6 +248,11 @@ void Window::onFrameEnd(){
     }
 }
 
+void IndieGo::Win::Window::toggleVsync() {
+    _vsync = !_vsync;
+    glfwSwapInterval(_vsync);
+}
+
 // #include <iostream>
 
 #ifdef _WIN32 // it seems there is no cpp cross-platform way to get executable path
@@ -295,6 +300,9 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     glfwSetCharCallback(screen, char_callback);
     glfwSetKeyCallback(screen, key_callback);
     glfwSetJoystickCallback(joystick_callback);
+
+
+    glfwSwapInterval(_vsync);
 
 // #if !defined RELEASE_BUILD || defined EDITOR
     // initialize UIMap for this window

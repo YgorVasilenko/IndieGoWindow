@@ -161,7 +161,9 @@ namespace IndieGo {
 
             unsigned int framesCounter = 0;
             bool isFullscreen() { return _fullscreen; };
+            bool isVsyncOn() { return _vsync; };
         private:
+            bool _vsync = true;
             bool _fullscreen = false;
             // logging
             std::string systemLogName, screenLogName, logLineName, sysLogLineName;
