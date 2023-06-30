@@ -155,13 +155,13 @@ void Window::onFrameStart() {
 
 #if !defined RELEASE_BUILD || defined EDITOR
     // make shure, that log widget is NOT in focus
-    if (GUI.getWidget(name + "_screenLog", name).focused){
-        // TODO : set focus on previously selected widget
-        if (GUI.prevFocusedWidgets[name])
-            GUI.prevFocusedWidgets[name]->setFocus = true;
-        else 
-            GUI.getWidget(name + "_systemLog", name).setFocus = true;
-    }
+    // if (GUI.getWidget(name + "_screenLog", name).focused) {
+    //     // TODO : set focus on previously selected widget
+    //     if (GUI.prevFocusedWidgets[name])
+    //         GUI.prevFocusedWidgets[name]->setFocus = true;
+    //     else 
+    //         GUI.getWidget(name + "_systemLog", name).setFocus = true;
+    // }
 #endif
 }
 
@@ -178,11 +178,12 @@ void Window::printInLog(const std::string & line) {
     UIMap[currLineName].text_align = LEFT;
     UIMap[currLineName].label = line;
     system_log_lines_total++;
+    systemLog.updateRowHeight(system_log_lines_total - 1, 0.04f);
 #endif
 }
 
 void Window::printOnScreen(const std::string & line) {
-#if !defined RELEASE_BUILD || defined EDITOR
+//#if !defined RELEASE_BUILD || defined EDITOR
     UI_elements_map & UIMap = GUI.UIMaps[name];
     std::string currLineName = logLineName + std::to_string(screen_log_lines_taken);
 
@@ -192,15 +193,16 @@ void Window::printOnScreen(const std::string & line) {
         UIMap.addElement(currLineName, UI_STRING_LABEL, &screenLog);
         UIMap[currLineName].text_align = LEFT;
         screen_log_lines_total++;
+        screenLog.updateRowHeight(screen_log_lines_total - 1, 0.04f);
     }
 
     UIMap[currLineName].label = line;
     screen_log_lines_taken++;
-#endif
+//#endif
 }
 
 void Window::clearScreenLog() {
-#if !defined RELEASE_BUILD || defined EDITOR
+//#if !defined RELEASE_BUILD || defined EDITOR
     if ( screen_log_lines_total == 0 ) return;
     std::string currLineName;
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -209,7 +211,7 @@ void Window::clearScreenLog() {
         UIMap[currLineName].label = "";
     }
     screen_log_lines_taken = 0;
-#endif
+//#endif
 }
 
 void Window::onFrameEnd(){
@@ -294,7 +296,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     glfwSetKeyCallback(screen, key_callback);
     glfwSetJoystickCallback(joystick_callback);
 
-#if !defined RELEASE_BUILD || defined EDITOR
+// #if !defined RELEASE_BUILD || defined EDITOR
     // initialize UIMap for this window
     // WIDGETS configured in *some* place of program,
     // then COPIED to UIMap. 
@@ -321,6 +323,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     screenLog.style.elements[UI_COLOR_TEXT].r = 255;
     screenLog.style.elements[UI_COLOR_TEXT].g = 255;
     screenLog.style.elements[UI_COLOR_TEXT].b = 255;
+    screenLog.forceNoFocus = true;
 
     // System log widget initialization
     systemLog.screen_region.x = 0.f;
@@ -339,7 +342,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     GUI.addWidget(screenLog, name);
     logLineName = name + screen_log_line;
     sysLogLineName = name + system_log_line;
-#endif
+// #endif
 
     // initialize frame time here, to have sane duration
     frameStartTime = std::chrono::high_resolution_clock::now();
