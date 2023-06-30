@@ -142,6 +142,8 @@ namespace IndieGo {
             void restore();
             void goFullscreen();
 
+            void toggleVsync();
+
             void onFrameStart();
             void onFrameEnd();
 
