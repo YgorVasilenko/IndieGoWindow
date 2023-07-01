@@ -152,17 +152,6 @@ void Window::onFrameStart() {
             }
         }
     }
-
-#if !defined RELEASE_BUILD || defined EDITOR
-    // make shure, that log widget is NOT in focus
-    // if (GUI.getWidget(name + "_screenLog", name).focused) {
-    //     // TODO : set focus on previously selected widget
-    //     if (GUI.prevFocusedWidgets[name])
-    //         GUI.prevFocusedWidgets[name]->setFocus = true;
-    //     else 
-    //         GUI.getWidget(name + "_systemLog", name).setFocus = true;
-    // }
-#endif
 }
 
 // logging
