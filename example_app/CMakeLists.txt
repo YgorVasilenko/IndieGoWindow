@@ -16,7 +16,7 @@ set(RENDERER_SRC ../IndieGoWindow.cpp src/app.cpp src/glad.c)
 
 if (DEFINED INDIEGO_UI)
     set(RENDERER_INCLUDES ${RENDERER_INCLUDES} ${INDIEGO_UI})
-    set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp)
+    set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp ${INDIEGO_UI}/IndieGoUI.cpp)
 endif()
 
 message(STATUS "RENDERER_INCLUDES: ${RENDERER_INCLUDES}")
@@ -30,6 +30,11 @@ add_executable(
 target_include_directories(
     Window_SM
     PUBLIC ${RENDERER_INCLUDES}
+)
+
+target_compile_definitions(
+    Window_SM PUBLIC
+    NO_SERIALIZATION=1   
 )
 
 # link glfw library

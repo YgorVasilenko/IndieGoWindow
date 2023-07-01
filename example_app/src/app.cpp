@@ -60,8 +60,37 @@ int main(){
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     Window mainWin(WIDTH, HEIGHT);
+    glfwSwapInterval(1);
+    
+    // mainWin.goFullscreen();
+
     glViewport(0, 0, WIDTH, HEIGHT);
 
+    // check video modes
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    int count;
+    const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
+    mainWin.printInLog("video modes count: " + std::to_string(count));
+    for (int i = 0; i < count; i++) {
+        mainWin.printInLog("------------ mode " + std::to_string(i) + " ------------");
+        mainWin.printInLog("width: " + std::to_string(modes[i].width));
+        mainWin.printInLog("height: " + std::to_string(modes[i].height));
+        mainWin.printInLog("redBits: " + std::to_string(modes[i].redBits));
+        mainWin.printInLog("greenBits: " + std::to_string(modes[i].greenBits));
+        mainWin.printInLog("blueBits: " + std::to_string(modes[i].blueBits));
+        mainWin.printInLog("refreshRate: " + std::to_string(modes[i].refreshRate));
+    }
+
+    // check current mode 
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    mainWin.printInLog("------------ current ------------");
+    mainWin.printInLog("width: " + std::to_string(mode->width));
+    mainWin.printInLog("height: " + std::to_string(mode->height));
+    mainWin.printInLog("redBits: " + std::to_string(mode->redBits));
+    mainWin.printInLog("greenBits: " + std::to_string(mode->greenBits));
+    mainWin.printInLog("blueBits: " + std::to_string(mode->blueBits));
+    mainWin.printInLog("refreshRate: " + std::to_string(mode->refreshRate));
 
     // Printing in screen log widget
     for (auto line : exampleLogText) {
@@ -70,6 +99,9 @@ int main(){
 
     std::string checkVal;
     double lastScrollOffset = 0;
+    glfwSetTime(0.0);
+    unsigned int fps_counter = 0;
+    unsigned int last_fps_value = 0;
     while (!glfwWindowShouldClose(mainWin.getScreen())) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -83,8 +115,14 @@ int main(){
             checkVal += ": " + std::to_string(keyval.second.pressed) + " ";
         }
 
+        // if (mainWin.keyboard[GLFW_KEY_ESCAPE].checkPress()) {
+        //     mainWin.restore();
+        // }
+
         // Display input data on screen
-        mainWin.printOnScreen(mainWin.name);
+        // mainWin.printOnScreen(mainWin.name);
+        mainWin.printOnScreen("FPS: " + std::to_string(last_fps_value));
+
         /*mainWin.printOnScreen("cursor pos X:" + std::to_string(mainWin.mouse.x));
         mainWin.printOnScreen("cursor pos Y:" + std::to_string(mainWin.mouse.y));*/
         // mainWin.printOnScreen("Keyboard buttons pressed: " + checkVal);
@@ -115,6 +153,13 @@ int main(){
 
         glfwSwapBuffers(mainWin.getScreen());
 	    glfwPollEvents();
+
+        fps_counter++;
+        if (glfwGetTime() >= 1.f) {
+            glfwSetTime(0.0);
+            last_fps_value = fps_counter;
+            fps_counter = 0;
+        }
     }
     return 0;
 }
