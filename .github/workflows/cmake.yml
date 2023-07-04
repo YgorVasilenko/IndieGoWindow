@@ -17,18 +17,19 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: checkout UI
-      uses: actions/checkout@v3
-      with:
-        repository: YgorVasilenko/IndieGoUI.git
-        path: ${{github.workspace}}/deps/IndieGoUI
-        ref: main
 
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: checkout UI
+      uses: actions/checkout@v3
+      with:
+        repository: YgorVasilenko/IndieGoUI.git
+        path: ${{github.workspace}}/IndieGoUI
+        ref: main
+
     - name: generate project
-      run: cmake example_app -B ${{github.workspace}}/example_app/build
+      run: dir ${{github.workspace}} && cmake example_app -B ${{github.workspace}}/example_app/build
       env:
         INDIEGO_UI_HOME: ${{github.workspace}}/deps/IndieGoUI
 
