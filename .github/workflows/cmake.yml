@@ -31,7 +31,7 @@ jobs:
     - name: generate project
       run: dir ${{github.workspace}} && cmake example_app -B ${{github.workspace}}/example_app/build
       env:
-        INDIEGO_UI_HOME: ${{github.workspace}}/deps/IndieGoUI
+        INDIEGO_UI_HOME: ${{github.workspace}}/IndieGoUI
 
     - name: Build
       run: cmake --build ${{github.workspace}}/example_app/build
