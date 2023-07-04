@@ -18,13 +18,13 @@ jobs:
 
     steps:
     - name: checkout repos
-      uses: ginxo/github-action-build-chain@BXMSPROD-1025
+      uses: actions/checkout@v3
       with:
-        definition-file: ${{github.workspace}}/.github/definitions.yml
-        flow-type: "single_pr"
+        repository: git@github.com:YgorVasilenko/IndieGoUI.git
+        path: ${{github.workspace}}/deps/IndieGoUI
       
     - name: generate project
-      run: cmake example_app -B ${{github.workspace}}/example_app/build
+      run: cmake example_app -B ${{github.workspace}}/example_app/build -DINDIEGO_UI=${{github.workspace}}/deps/IndieGoUI
 
     - name: Build
       run: cmake --build ${{github.workspace}}/example_app/build
