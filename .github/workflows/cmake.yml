@@ -17,14 +17,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9.0
-      with:
-        definition-file: ${{github.workspace}}/.github/definitions.yml
-        flow-type: "single_pr"
-
     - name: generate project
       run: cmake example_app -B ${{github.workspace}}/example_app/build
+      inputs:
+        definition-file: ${{github.workspace}}/.github/definitions.yml
+        flow-type: "single_pr"
 
     - name: Build
       run: cmake --build ${{github.workspace}}/example_app/build
