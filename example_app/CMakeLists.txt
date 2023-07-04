@@ -16,7 +16,7 @@ set(RENDERER_SRC ../IndieGoWindow.cpp src/app.cpp src/glad.c)
 
 if (DEFINED INDIEGO_UI)
     set(RENDERER_INCLUDES ${RENDERER_INCLUDES} ${INDIEGO_UI})
-    set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp)
+    set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp ${INDIEGO_UI}/IndieGoUI.cpp)
 endif()
 
 message(STATUS "RENDERER_INCLUDES: ${RENDERER_INCLUDES}")
@@ -36,6 +36,13 @@ target_include_directories(
 target_link_libraries(
     Window_SM
     PUBLIC "../lib/glfw3"
+)
+
+target_compile_definitions(
+    Window_SM PUBLIC 
+        NO_SERIALIZATION=1
+        WIDTH=1920
+        HEIGHT=1080
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG " /std:c++17 ")

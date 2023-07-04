@@ -29,7 +29,7 @@ jobs:
         ref: main
 
     - name: generate project
-      run: dir ${{github.workspace}} && cmake example_app -B ${{github.workspace}}/example_app/build
+      run: cmake example_app -B ${{github.workspace}}/example_app/build
       env:
         INDIEGO_UI_HOME: ${{github.workspace}}/IndieGoUI
 
