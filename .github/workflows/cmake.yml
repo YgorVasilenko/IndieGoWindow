@@ -17,12 +17,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2.2
     - name: generate project
-      run: cmake example_app -B ${{github.workspace}}/example_app/build
+    - uses: ginxo/github-action-build-chain@BXMSPROD-1025
       with:
         definition-file: ${{github.workspace}}/.github/definitions.yml
         flow-type: "single_pr"
+      run: cmake example_app -B ${{github.workspace}}/example_app/build
 
     - name: Build
       run: cmake --build ${{github.workspace}}/example_app/build
