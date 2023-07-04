@@ -4,7 +4,7 @@ project(Window_SM VERSION 1.0)
 
 # Assume env vars set
 if(NOT DEFINED INDIEGO_UI)
-    set(INDIEGO_UI $ENV{INDIEGO_UI_HOME})
+    file(TO_CMAKE_PATH $ENV{INDIEGO_UI_HOME} INDIEGO_UI)
 endif()
 
 if (NOT DEFINED INDIEGO_UI)
