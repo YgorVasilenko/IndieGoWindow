@@ -22,6 +22,7 @@ jobs:
       with:
         repository: git@github.com:YgorVasilenko/IndieGoUI.git
         path: ${{github.workspace}}/deps/IndieGoUI
+        ref: main
       
     - name: generate project
       run: cmake example_app -B ${{github.workspace}}/example_app/build -DINDIEGO_UI=${{github.workspace}}/deps/IndieGoUI
