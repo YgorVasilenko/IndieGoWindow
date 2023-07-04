@@ -1,0 +1,2 @@
+version: "2.2"
+dependencies: git@github.com:YgorVasilenko/IndieGoUI.git

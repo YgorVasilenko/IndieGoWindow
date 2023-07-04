@@ -19,22 +19,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9.0
-      uses: actions/setup-python@v3
       with:
-        python-version: "3.9"
+        definition-file: ${{github.workspace}}/.github/definitions.yml
+        flow-type: "single_pr"
 
-    - name: repo project checkout
-      shell: pwsh
-      working-directory: ${{github.workspace}}/IndieGo
-      run: | 
-        python ../repo init -u https://github.com/YgorVasilenko/IndieGo_manifest.git
-        python ../repo sync
-        
-    # - name: generate project
-    #   run: cmake example_app -B ${{github.workspace}}/example_app/build -DCI_BUILD=1
+    - name: generate project
+      run: cmake example_app -B ${{github.workspace}}/example_app/build
 
-    # - name: Build
-    #   run: cmake --build ${{github.workspace}}/example_app/build
+    - name: Build
+      run: cmake --build ${{github.workspace}}/example_app/build
 
     # TODO : try getting hosts with OpenGL3 installed, or place libriaries into file
     # - name: Run
