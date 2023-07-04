@@ -19,7 +19,7 @@ jobs:
     steps:
     - name: generate project
       run: cmake example_app -B ${{github.workspace}}/example_app/build
-      inputs:
+      with:
         definition-file: ${{github.workspace}}/.github/definitions.yml
         flow-type: "single_pr"
 
