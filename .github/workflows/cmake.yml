@@ -20,7 +20,7 @@ jobs:
     - name: checkout repos
       uses: actions/checkout@v3
       with:
-        repository: https://github.com/YgorVasilenko/IndieGoUI.git
+        repository: YgorVasilenko/IndieGoUI.git
         path: ${{github.workspace}}/deps/IndieGoUI
         ref: main
       
