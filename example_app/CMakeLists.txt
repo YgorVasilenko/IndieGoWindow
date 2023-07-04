@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Window_SM VERSION 1.0)
+project(WindowDemo VERSION 1.0)
 
 # Assume env vars set
 if(NOT DEFINED INDIEGO_UI)
@@ -23,23 +23,23 @@ message(STATUS "RENDERER_INCLUDES: ${RENDERER_INCLUDES}")
 message(STATUS "RENDERER_SRC: ${RENDERER_SRC}")
 
 add_executable(
-    Window_SM
+    WindowDemo
     ${RENDERER_SRC}
 )
 
 target_include_directories(
-    Window_SM
+    WindowDemo
     PUBLIC ${RENDERER_INCLUDES}
 )
 
 # link glfw library
 target_link_libraries(
-    Window_SM
+    WindowDemo
     PUBLIC "../lib/glfw3"
 )
 
 target_compile_definitions(
-    Window_SM PUBLIC 
+    WindowDemo PUBLIC 
         NO_SERIALIZATION=1
         WIDTH=1920
         HEIGHT=1080
