@@ -65,11 +65,11 @@ example output should be:
               _Other1=unsigned __int64,
               _Other2=int
           ]
-  CameraDemo.vcxproj -> C:\Users\vasilenk\Private2\CameraDemo\example_app\build\Debug\CameraDemo.exe
+  CameraDemo.vcxproj -> C:\Users\vasilenk\Private2\CameraDemo\example_app\build\Debug\WindowDemo.exe
 ```
 
 ## Running example.
 
 ```
-C:\Users\vasilenk\Private2\CameraDemo\example_app\build\Debug\CameraDemo.exe
+C:\Users\vasilenk\Private2\CameraDemo\example_app\build\Debug\WindowDemo.exe
 ```
