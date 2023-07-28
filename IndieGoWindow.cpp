@@ -24,6 +24,16 @@ void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int act
         return;
     }
     Window::screens[window]->mouse[button].pressed = action;
+
+    if (action == GLFW_PRESS && Window::screens[window]->mouse[button].buttonPressCallback) {
+        Window::screens[window]->mouse[button].buttonPressCallback(
+            Window::screens[window]->mouse[button].pressDataPtr
+        );
+    } else if (action == GLFW_RELEASE && Window::screens[window]->mouse[button].buttonReleaseCallback) {
+        Window::screens[window]->mouse[button].buttonReleaseCallback(
+            Window::screens[window]->mouse[button].releaseDataPtr
+        );
+    }
 }
 
 void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -48,6 +58,16 @@ void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int a
     Window::screens[window]->keyboard.lastPressedKey = key;
     Window::screens[window]->keyboard.pressFlag = true;
     GUI.key_input(&Window::screens[window]->name, key, glfwGetKey(window, key) == GLFW_PRESS);
+
+    if (action == GLFW_PRESS && Window::screens[window]->keyboard[key].buttonPressCallback) {
+        Window::screens[window]->keyboard[key].buttonPressCallback(
+            Window::screens[window]->keyboard[key].pressDataPtr
+        );
+    } else if (action == GLFW_RELEASE && Window::screens[window]->keyboard[key].buttonReleaseCallback) {
+        Window::screens[window]->keyboard[key].buttonReleaseCallback(
+            Window::screens[window]->keyboard[key].releaseDataPtr
+        );
+    }
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
@@ -159,7 +179,7 @@ std::string screen_log_line = "_screen_log_line_";
 std::string system_log_line = "_system_log_line_";
 
 void Window::printInLog(const std::string & line) {
-#if !defined RELEASE_BUILD || defined EDITOR
+#if (!defined RELEASE_BUILD || defined EDITOR) || defined FORCE_LOG_ON
     std::string currLineName = sysLogLineName + std::to_string(system_log_lines_total);
     WIDGET & systemLog = GUI.widgets[name][systemLogName];
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -172,7 +192,7 @@ void Window::printInLog(const std::string & line) {
 }
 
 void Window::printOnScreen(const std::string & line) {
-#if !defined RELEASE_BUILD || defined EDITOR
+#if (!defined RELEASE_BUILD || defined EDITOR) || defined FORCE_LOG_ON
     UI_elements_map & UIMap = GUI.UIMaps[name];
     std::string currLineName = logLineName + std::to_string(screen_log_lines_taken);
 
@@ -191,7 +211,7 @@ void Window::printOnScreen(const std::string & line) {
 }
 
 void Window::clearScreenLog() {
-#if !defined RELEASE_BUILD || defined EDITOR
+#if (!defined RELEASE_BUILD || defined EDITOR) || defined FORCE_LOG_ON
     if ( screen_log_lines_total == 0 ) return;
     std::string currLineName;
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -290,10 +310,12 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     glfwSetKeyCallback(screen, key_callback);
     glfwSetJoystickCallback(joystick_callback);
 
+    const char * glfw_ver = glfwGetVersionString();
+    std::cout << glfw_ver << std::endl;
     // vsync on by default
     glfwSwapInterval(_vsync);
 
-#if !defined RELEASE_BUILD || defined EDITOR
+#if (!defined RELEASE_BUILD || defined EDITOR) || defined FORCE_LOG_ON
     // initialize UIMap for this window
     // WIDGETS configured in *some* place of program,
     // then COPIED to UIMap. 

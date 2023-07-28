@@ -44,7 +44,13 @@ namespace IndieGo {
         
         struct ButtonState {
             bool pressed = false;
-            
+
+            void * pressDataPtr = NULL;
+            void * releaseDataPtr = NULL;
+
+            void (*buttonPressCallback)(void * pressDataPtr) = NULL;
+            void (*buttonReleaseCallback)(void * releaseDataPtr) = NULL;
+
             // checks, if button become pressed at this exact frame
             bool checkPress() {
                	if (!pressed)
