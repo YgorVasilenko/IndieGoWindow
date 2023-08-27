@@ -27,6 +27,11 @@ namespace IndieGo {
         rus, eng
     };
 
+    // for flipping images
+    struct PixelData {
+        unsigned char r, g, b, a;
+    };
+    
 	namespace Win {
     
         // GLFW-dependent callbacks. TODO - add more
@@ -42,6 +47,11 @@ namespace IndieGo {
         extern void char_callback(GLFWwindow* window, unsigned int codepoint);
         extern void joystick_callback(int jid, int _event);
         
+        // if fullscreen is on, GDI on windows may not have access
+        // to correct framebuffer data, and clipboard should be populated
+        // from app side
+        void takeScreenshot(GLFWwindow* window);
+
         struct ButtonState {
             bool pressed = false;
             
@@ -164,6 +174,7 @@ namespace IndieGo {
             unsigned int framesCounter = 0;
             bool isFullscreen() { return _fullscreen; };
             bool isVsyncOn() { return _vsync; };
+
         private:
             bool _vsync = true;
             bool _fullscreen = false;
@@ -189,6 +200,7 @@ namespace IndieGo {
             double timeCounter = 0.0;
             // unsigned int framesCounter = 0;
             int winPos[2] = { 0, 0 };
+
         };
     }
 }

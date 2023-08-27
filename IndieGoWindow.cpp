@@ -43,11 +43,42 @@ void IndieGo::Win::window_close_callback(GLFWwindow* window) {
     std::cout << "[WINDOW::INFO] calling window_close_callback for " << Window::screens[window]->name << "!" << std::endl;
 };
 
+void IndieGo::Win::takeScreenshot(GLFWwindow* window) {
+    std::vector<PixelData> data;
+    data.resize( Window::screens[window]->width * Window::screens[window]->height );
+    data.data();
+    glReadPixels(0, 0, Window::screens[window]->width, Window::screens[window]->height, GL_BGRA, GL_UNSIGNED_BYTE, data.data());
+    std::vector< PixelData > rgbadata(Window::screens[window]->width * Window::screens[window]->height);
+
+    // vertical flip
+    for (int y = 0; y < Window::screens[window]->height; y++) {
+        for (int x = 0; x < Window::screens[window]->width; x++) {
+            rgbadata[ y * Window::screens[window]->width + x ] = data[ y * Window::screens[window]->width + ( Window::screens[window]->width - x - 1 ) ];
+        }
+    }
+
+    // horizontal flip
+    std::reverse(
+        rgbadata.begin(),
+        rgbadata.end()
+    );
+
+    glfwSetClipboardBitmap(
+        reinterpret_cast<unsigned char*>(rgbadata.data()), 
+        Window::screens[window]->width, 
+        Window::screens[window]->height
+    );
+}
+
 void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    Window::screens[window]->keyboard[key].pressed = action;
+    bool isPressed = glfwGetKey(window, key) == GLFW_PRESS;
+    Window::screens[window]->keyboard[key].pressed = isPressed;
     Window::screens[window]->keyboard.lastPressedKey = key;
     Window::screens[window]->keyboard.pressFlag = true;
-    GUI.key_input(&Window::screens[window]->name, key, glfwGetKey(window, key) == GLFW_PRESS);
+    GUI.key_input(&Window::screens[window]->name, key, isPressed);
+    if (isPressed && key == GLFW_KEY_PRINT_SCREEN && Window::screens[window]->isFullscreen()) {
+        IndieGo::Win::takeScreenshot(window);
+    }
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
@@ -259,6 +290,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     _fullscreen = fullscreen;
 
     GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+    // screen->monitor;
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
@@ -270,6 +302,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
         mainScreen = screen;
         // GUI gets initialized with first created window
         GUI.init(name, screen);
+        std::cout << glfwGetVersionString() << std::endl;  
     } else {
         GUI.addWindow(name, screen);
     }
