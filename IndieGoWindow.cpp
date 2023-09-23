@@ -19,11 +19,23 @@ void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {
 }
 
 void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    Window & screen = *Window::screens[window];
     // don't process mouse clicks, if mouse is over any widget, but screen log.
-    if (action && GUI.hoveredWidgets[Window::screens[window]->name] && GUI.hoveredWidgets[Window::screens[window]->name]->name != Window::screens[window]->name + "_screenLog"){
-        return;
+    if (action) {
+        if (GUI.hoveredWidgets[screen.name] && GUI.hoveredWidgets[screen.name]->name != screen.name + "_screenLog"){
+            return;
+        }
+        if (screen.mouse[button].pressCallback.second)
+            screen.mouse[button].pressCallback.second(
+                screen.mouse[button].pressCallback.first
+            );
+    } else {
+        if (screen.mouse[button].releaseCallback.second)
+            screen.mouse[button].releaseCallback.second(
+                screen.mouse[button].releaseCallback.first
+            );
     }
-    Window::screens[window]->mouse[button].pressed = action;
+    screen.mouse[button].pressed = action;
 }
 
 void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -31,8 +43,9 @@ void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int 
 }
 
 void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int height) {
-    Window::screens[window]->width = width;
-    Window::screens[window]->height = height;
+    Window & screen = *Window::screens[window];
+    screen.width = width;
+    screen.height = height;
 
     GUI.screen_size.w = width;
     GUI.screen_size.h = height;
@@ -40,20 +53,23 @@ void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int heigh
 
 #include <iostream>
 void IndieGo::Win::window_close_callback(GLFWwindow* window) {
-    std::cout << "[WINDOW::INFO] calling window_close_callback for " << Window::screens[window]->name << "!" << std::endl;
+    Window & screen = *Window::screens[window];
+    std::cout << "[WINDOW::INFO] calling window_close_callback for " << screen.name << "!" << std::endl;
 };
 
 void IndieGo::Win::takeScreenshot(GLFWwindow* window) {
     std::vector<PixelData> data;
-    data.resize( Window::screens[window]->width * Window::screens[window]->height );
+    Window & screen = *Window::screens[window];
+
+    data.resize( screen.width * screen.height );
     data.data();
-    glReadPixels(0, 0, Window::screens[window]->width, Window::screens[window]->height, GL_BGRA, GL_UNSIGNED_BYTE, data.data());
-    std::vector< PixelData > rgbadata(Window::screens[window]->width * Window::screens[window]->height);
+    glReadPixels(0, 0, screen.width, screen.height, GL_BGRA, GL_UNSIGNED_BYTE, data.data());
+    std::vector< PixelData > rgbadata(screen.width * screen.height);
 
     // vertical flip
-    for (int y = 0; y < Window::screens[window]->height; y++) {
-        for (int x = 0; x < Window::screens[window]->width; x++) {
-            rgbadata[ y * Window::screens[window]->width + x ] = data[ y * Window::screens[window]->width + ( Window::screens[window]->width - x - 1 ) ];
+    for (int y = 0; y < screen.height; y++) {
+        for (int x = 0; x < screen.width; x++) {
+            rgbadata[ y * screen.width + x ] = data[ y * screen.width + ( screen.width - x - 1 ) ];
         }
     }
 
@@ -65,38 +81,53 @@ void IndieGo::Win::takeScreenshot(GLFWwindow* window) {
 
     glfwSetClipboardBitmap(
         reinterpret_cast<unsigned char*>(rgbadata.data()), 
-        Window::screens[window]->width, 
-        Window::screens[window]->height
+        screen.width, 
+        screen.height
     );
 }
 
 void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     bool isPressed = glfwGetKey(window, key) == GLFW_PRESS;
-    Window::screens[window]->keyboard[key].pressed = isPressed;
-    Window::screens[window]->keyboard.lastPressedKey = key;
-    Window::screens[window]->keyboard.pressFlag = true;
-    GUI.key_input(&Window::screens[window]->name, key, isPressed);
-    if (isPressed && key == GLFW_KEY_PRINT_SCREEN && Window::screens[window]->isFullscreen()) {
-        IndieGo::Win::takeScreenshot(window);
+    Window & screen = *Window::screens[window];
+
+    screen.keyboard[key].pressed = isPressed;
+    screen.keyboard.lastPressedKey = key;
+    screen.keyboard.pressFlag = true;
+
+    if (isPressed) {
+        if (screen.keyboard[key].pressCallback.second)
+            screen.keyboard[key].pressCallback.second(
+                screen.keyboard[key].pressCallback.first
+            );
+        
+        if (key == GLFW_KEY_PRINT_SCREEN && Window::screens[window]->isFullscreen()) {
+            IndieGo::Win::takeScreenshot(window);
+        }
+    } else { 
+        if (screen.keyboard[key].releaseCallback.second)
+            screen.keyboard[key].pressCallback.second(
+                screen.keyboard[key].pressCallback.first
+            );
     }
+    GUI.key_input(&screen.name, key, isPressed);
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
     if (_event == GLFW_CONNECTED) {
 		// The joystick was connected
-		IndieGo::Win::Window::attached_joysticks[jid] = 1;
-		if (IndieGo::Win::Window::main_joystick == -1)
-			IndieGo::Win::Window::main_joystick = jid;
+		Window::attached_joysticks[jid] = 1;
+		if (Window::main_joystick == -1)
+			Window::main_joystick = jid;
 	} else if (_event == GLFW_DISCONNECTED) {
 		// The joystick was disconnected
-		IndieGo::Win::Window::attached_joysticks[jid] = -1;
-		if (IndieGo::Win::Window::main_joystick == jid) {
-            IndieGo::Win::Window::main_joystick = -1;
+		Window::attached_joysticks[jid] = -1;
+		if (Window::main_joystick == jid) {
+            Window::main_joystick = -1;
 
 			// Go through all joystick ports, get attached
 			for (int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
-				if (IndieGo::Win::Window::attached_joysticks[i] != -1) {
-                    IndieGo::Win::Window::main_joystick = IndieGo::Win::Window::attached_joysticks[i];
+				if (Window::attached_joysticks[i] != -1) {
+                    Window::main_joystick = Window::attached_joysticks[i];
                     break;
                 };
 			}
@@ -105,23 +136,25 @@ void IndieGo::Win::joystick_callback(int jid, int _event) {
 }
 
 void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-    Window::screens[window]->mouse.dX = (Window::screens[window]->mouse.x - xpos) / Window::screens[window]->width;
-    Window::screens[window]->mouse.dY = (Window::screens[window]->mouse.y - ypos) / Window::screens[window]->height;
+    Window & screen = *Window::screens[window];
+    screen.mouse.dX = (screen.mouse.x - xpos) / screen.width;
+    screen.mouse.dY = (screen.mouse.y - ypos) / screen.height;
 
-    Window::screens[window]->mouse.prevX = Window::screens[window]->mouse.x;
-    Window::screens[window]->mouse.prevY = Window::screens[window]->mouse.y;
+    screen.mouse.prevX = screen.mouse.x;
+    screen.mouse.prevY = screen.mouse.y;
 
-    Window::screens[window]->mouse.x = xpos;
-    Window::screens[window]->mouse.y = ypos;
+    screen.mouse.x = xpos;
+    screen.mouse.y = ypos;
 }
 
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     GUI.scroll(&Window::screens[window]->name, xoffset, yoffset);
+    Window & screen = *Window::screens[window];
     // don't process scroll, if mouse is over any widget, but screen log.
-    if (GUI.hoveredWidgets[Window::screens[window]->name] && GUI.hoveredWidgets[Window::screens[window]->name]->name != Window::screens[window]->name + "_screenLog") {
+    if (GUI.hoveredWidgets[screen.name] && GUI.hoveredWidgets[screen.name]->name != screen.name + "_screenLog") {
         return;
     }
-    Window::screens[window]->scrollOffset = yoffset;
+    screen.scrollOffset = yoffset;
 }
 
 void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {
@@ -437,7 +470,7 @@ IndieGo::Win::Window::~Window() {
 }
 
 bool IndieGo::Win::Window::gladInitialized = false;
-std::map< GLFWwindow*, IndieGo::Win::Window* > IndieGo::Win::Window::screens = {};
+std::unordered_map< GLFWwindow*, IndieGo::Win::Window* > IndieGo::Win::Window::screens = {};
 GLFWwindow * IndieGo::Win::Window::mainScreen = NULL;
 int IndieGo::Win::Window::attached_joysticks[GLFW_JOYSTICK_LAST] = { 0 };
 int IndieGo::Win::Window::main_joystick = -1;
