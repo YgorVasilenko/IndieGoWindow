@@ -19,6 +19,7 @@ void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {
 }
 
 void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    Window & screen = *Window::screens[window];
     // don't process mouse clicks, if mouse is over any widget, but screen log.
     if (action) {
         if (GUI.hoveredWidgets[screen.name] && GUI.hoveredWidgets[screen.name]->name != screen.name + "_screenLog"){
@@ -42,6 +43,7 @@ void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int 
 }
 
 void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int height) {
+    Window & screen = *Window::screens[window];
     screen.width = width;
     screen.height = height;
 
@@ -51,6 +53,7 @@ void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int heigh
 
 #include <iostream>
 void IndieGo::Win::window_close_callback(GLFWwindow* window) {
+    Window & screen = *Window::screens[window];
     std::cout << "[WINDOW::INFO] calling window_close_callback for " << screen.name << "!" << std::endl;
 };
 
@@ -92,18 +95,18 @@ void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int a
     screen.keyboard.pressFlag = true;
 
     if (isPressed) {
-        if (screen[key].pressCallback.second)
-            screen[key].pressCallback.second(
-                screen[key].pressCallback.first
+        if (screen.keyboard[key].pressCallback.second)
+            screen.keyboard[key].pressCallback.second(
+                screen.keyboard[key].pressCallback.first
             );
         
         if (key == GLFW_KEY_PRINT_SCREEN && Window::screens[window]->isFullscreen()) {
             IndieGo::Win::takeScreenshot(window);
         }
     } else { 
-        if (screen[key].releaseCallback.second)
-            screen[key].pressCallback.second(
-                screen[key].pressCallback.first
+        if (screen.keyboard[key].releaseCallback.second)
+            screen.keyboard[key].pressCallback.second(
+                screen.keyboard[key].pressCallback.first
             );
     }
     GUI.key_input(&screen.name, key, isPressed);
@@ -467,7 +470,7 @@ IndieGo::Win::Window::~Window() {
 }
 
 bool IndieGo::Win::Window::gladInitialized = false;
-std::map< GLFWwindow*, IndieGo::Win::Window* > IndieGo::Win::Window::screens = {};
+std::unordered_map< GLFWwindow*, IndieGo::Win::Window* > IndieGo::Win::Window::screens = {};
 GLFWwindow * IndieGo::Win::Window::mainScreen = NULL;
 int IndieGo::Win::Window::attached_joysticks[GLFW_JOYSTICK_LAST] = { 0 };
 int IndieGo::Win::Window::main_joystick = -1;
