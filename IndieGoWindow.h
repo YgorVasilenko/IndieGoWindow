@@ -1,10 +1,12 @@
 #ifndef INDIEGO_WINDOW_H_
 #define INDIEGO_WINDOW_H_
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <filesystem>
 #include <chrono>
+#include <function>
+
 namespace fs = std::filesystem;
 //
 // 1. App should be able to maintain several windows
@@ -54,7 +56,9 @@ namespace IndieGo {
 
         struct ButtonState {
             bool pressed = false;
-            
+            std::pair<void*, std::function<void(void*)>> pressCallback;
+            std::pair<void*, std::function<void(void*)>> releaseCallback;
+
             // checks, if button become pressed at this exact frame
             bool checkPress() {
                	if (!pressed)
@@ -75,9 +79,10 @@ namespace IndieGo {
             // true if press happened in current frame
             bool pressFlag = false;
             
-            std::map<int, ButtonState> keys;
+            std::unordered_map<int, ButtonState> keys;
             int lastPressedKey = -1;
             ButtonState & getLastPressedKey() {
+                assert(lastPressedKey != -1);
                 return keys[lastPressedKey];
             }
             ButtonState & operator[](int keycode){
@@ -90,13 +95,13 @@ namespace IndieGo {
             enum AXES {
                 lx, ly, rx, ry
             };
-            std::map<int, float> sticks_input;
+            std::unordered_map<int, float> sticks_input;
         };
 
         struct Mouse {
             double x = 0.0, dX = 0.0, prevX = 0.0, 
                 y = 0.0, dY = 0.0, prevY = 0.0;
-            std::map<int, ButtonState> keys;
+            std::unordered_map<int, ButtonState> keys;
             ButtonState & operator[](int keycode){
                 return keys[keycode];
             }
@@ -120,7 +125,7 @@ namespace IndieGo {
             
             // system will send signals to app's GLFWwindow*
             // this will be global app's windows list
-            static std::map< GLFWwindow*, Window* > screens;
+            static std::unordered_map< GLFWwindow*, Window* > screens;
 
             // Created first
             static GLFWwindow * mainScreen;
@@ -145,8 +150,6 @@ namespace IndieGo {
                 }
                 return nullptr; 
             }
-            virtual void Update() {};
-            virtual void Render() {};
 
             // restores window (f.e. from fullscreen)
             void restore();
