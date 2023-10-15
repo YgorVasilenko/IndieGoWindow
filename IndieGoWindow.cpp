@@ -236,7 +236,7 @@ void Window::printInLog(const std::string & line) {
 }
 
 void Window::printOnScreen(const std::string & line) {
-#if !defined RELEASE_BUILD || defined EDITOR
+#if !defined RELEASE_BUILD || defined EDITOR || defined PROFILE
     UI_elements_map & UIMap = GUI.UIMaps[name];
     std::string currLineName = logLineName + std::to_string(screen_log_lines_taken);
 
@@ -255,7 +255,7 @@ void Window::printOnScreen(const std::string & line) {
 }
 
 void Window::clearScreenLog() {
-#if !defined RELEASE_BUILD || defined EDITOR
+#if !defined RELEASE_BUILD || defined EDITOR || defined PROFILE
     if ( screen_log_lines_total == 0 ) return;
     std::string currLineName;
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -267,7 +267,7 @@ void Window::clearScreenLog() {
 #endif
 }
 
-void Window::onFrameEnd(){
+void Window::onFrameEnd() {
     clearScreenLog();
     mouse.dX = 0;
     mouse.dY = 0;
@@ -322,6 +322,8 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     name = name_;
     _fullscreen = fullscreen;
 
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
     GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
     // screen->monitor;
     screens[ screen ] = this;
@@ -359,7 +361,7 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     // vsync on by default
     glfwSwapInterval(_vsync);
 
-#if !defined RELEASE_BUILD || defined EDITOR
+#if !defined RELEASE_BUILD || defined EDITOR || defined PROFILE
     // initialize UIMap for this window
     // WIDGETS configured in *some* place of program,
     // then COPIED to UIMap. 
