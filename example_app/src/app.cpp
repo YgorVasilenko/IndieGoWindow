@@ -91,17 +91,6 @@ int main(){
 
         // Display input data on screen
         mainWin.printOnScreen(mainWin.name);
-        mainWin.printOnScreen("cursor pos X:" + std::to_string(mainWin.mouse.x));
-        mainWin.printOnScreen("cursor pos Y:" + std::to_string(mainWin.mouse.y));
-        mainWin.printOnScreen("Keyboard buttons pressed: " + checkVal);
-        /*if (mainWin.scrollOffset != (double)0)
-            lastScrollOffset = mainWin.scrollOffset;*/
-        mainWin.printOnScreen("Last scroll offset: " + std::to_string(lastScrollOffset));
-        mainWin.printOnScreen("My home folder: " + mainWin.home_dir.string());
-        
-        /*std::string systemLocale = mainWin.locale == IndieGo::LANG_LOCALE::rus ? "russian" : "english";
-        mainWin.printOnScreen("Default system locale: " + systemLocale);*/
-        // mainWin.printOnScreen("main joystick: " + std::to_string(Window::main_joystick));
 
         if (Window::main_joystick != -1) {
             mainWin.printOnScreen("cross: " + std::to_string(mainWin.joystick_state[Window::main_joystick][BUTTON_CROSS].pressed));

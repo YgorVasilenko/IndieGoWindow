@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Window_SM VERSION 1.0)
+project(WindowDemo VERSION 1.0)
 
 # Assume env vars set
 if(NOT DEFINED INDIEGO_UI)
-    set(INDIEGO_UI $ENV{INDIEGO_UI_HOME})
+    file(TO_CMAKE_PATH $ENV{INDIEGO_UI_HOME} INDIEGO_UI)
 endif()
 
 if (NOT DEFINED INDIEGO_UI)
@@ -16,7 +16,7 @@ set(RENDERER_SRC ../IndieGoWindow.cpp src/app.cpp src/glad.cpp)
 
 if (DEFINED INDIEGO_UI)
     set(RENDERER_INCLUDES ${RENDERER_INCLUDES} ${INDIEGO_UI})
-    set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp)
+    set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp ${INDIEGO_UI}/IndieGoUI.cpp)
 endif()
 
 set(CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH})
@@ -26,17 +26,26 @@ message(STATUS "RENDERER_INCLUDES: ${RENDERER_INCLUDES}")
 message(STATUS "RENDERER_SRC: ${RENDERER_SRC}")
 
 add_executable(
-    Window_SM
+    WindowDemo
     ${RENDERER_SRC}
 )
 
 target_include_directories(
-    Window_SM
+    WindowDemo
     PUBLIC ${RENDERER_INCLUDES}
 )
 
 # link glfw library
 target_link_libraries(
-    Window_SM
-    PUBLIC "${GLFW_LIB}"
+    WindowDemo
+    PUBLIC "../lib/glfw3"
 )
+
+target_compile_definitions(
+    WindowDemo PUBLIC 
+        NO_SERIALIZATION=1
+        WIDTH=1920
+        HEIGHT=1080
+)
+
+set(CMAKE_CXX_FLAGS_DEBUG " /std:c++17 ")
