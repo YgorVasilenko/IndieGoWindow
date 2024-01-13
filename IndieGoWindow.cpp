@@ -323,7 +323,10 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     _fullscreen = fullscreen;
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_PLATFORM_COCOA, 1);
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, 0);
+#endif
     GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
     // screen->monitor;
     screens[ screen ] = this;

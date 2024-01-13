@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(WindowDemo VERSION 1.0)
+set(INDIEGO_PROJECT WindowDemo)
 
 # Assume env vars set
 if(NOT DEFINED INDIEGO_UI)
@@ -35,17 +36,15 @@ target_include_directories(
     PUBLIC ${RENDERER_INCLUDES}
 )
 
-# link glfw library
-target_link_libraries(
-    WindowDemo
-    PUBLIC "../lib/glfw3"
-)
-
 target_compile_definitions(
     WindowDemo PUBLIC 
         NO_SERIALIZATION=1
         WIDTH=1920
         HEIGHT=1080
-)
+ )
 
-set(CMAKE_CXX_FLAGS_DEBUG " /std:c++17 ")
+# link glfw library
+target_link_libraries(
+    WindowDemo
+    PUBLIC ${GLFW_LIB}
+)
