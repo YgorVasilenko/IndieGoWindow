@@ -19,9 +19,6 @@ if (DEFINED INDIEGO_UI)
     set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp ${INDIEGO_UI}/IndieGoUI.cpp)
 endif()
 
-set(CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH})
-include(system)
-
 message(STATUS "RENDERER_INCLUDES: ${RENDERER_INCLUDES}")
 message(STATUS "RENDERER_SRC: ${RENDERER_SRC}")
 
