@@ -19,9 +19,10 @@ include(system)
 
 message(STATUS "DEMO_INCLUDES: ${DEMO_INCLUDES}")
 message(STATUS "DEMO_SRC: ${DEMO_SRC}")
+message(STATUS "PROTOBUF_LIBS: ${PROTOBUF_LIBS}")
 
 add_executable(
-    WindowDemo WIN32 MACOSX_BUNDLE
+    WindowDemo MACOSX_BUNDLE
     ${DEMO_SRC}
 )
 
@@ -63,8 +64,10 @@ else()
         WindowDemo
         PUBLIC "../lib/glfw3"
 
+        PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../module/build/Debug/IndieGoWindow.lib
+
         # serialization
-        PUBLIC ${PROTOBUF_LIB}/libprotobufd.lib
+        PUBLIC ${PROTOBUF_LIBS}
     )    
 endif()
 
