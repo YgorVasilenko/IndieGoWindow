@@ -89,6 +89,8 @@ namespace IndieGo {
             ButtonState & operator[](int keycode){
                 return keys[keycode];
             }
+
+            
         };
 
         // Gamepad is a keyboard with analog sticks
@@ -170,10 +172,7 @@ namespace IndieGo {
             // stay, unless explicitly deleted by Window user. 
             // System log could be flushed to file.
             virtual void printInLog(const std::string & line);
-            virtual void flushSystemLog(std::string & logPath) {
-                // TODO
-            };
-
+            virtual void flushSystemLog(const std::string & logPath);
 
             unsigned int framesCounter = 0;
             bool isFullscreen() { return _fullscreen; };

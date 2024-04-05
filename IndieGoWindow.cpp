@@ -462,6 +462,18 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     }
 }
 
+void IndieGo::Win::Window::flushSystemLog(const std::string & logPath) {
+    std::ofstream outFile(logPath);
+    if (outFile.is_open()) {
+        UI_elements_map & UIMap = GUI.UIMaps[name];
+        for (int i = 0; i < system_log_lines_total; i++) {
+            std::string currLineName = sysLogLineName + std::to_string(i);
+            outFile << UIMap[currLineName].label << std::endl;
+        }
+    }
+    outFile.close();
+}
+
 IndieGo::Win::Window::~Window() {
     std::cout << "[WINDOW::INFO] destructor for " << name << " is called!" << std::endl;
     GUI.removeWindow(name, getScreen());

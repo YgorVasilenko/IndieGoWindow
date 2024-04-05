@@ -45,4 +45,4 @@ target_compile_definitions(
         HEIGHT=1080
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG " /std:c++17 ")
+set(CMAKE_CXX_FLAGS_DEBUG " /std:c++17 /Od /DEBUG /Zi ")
