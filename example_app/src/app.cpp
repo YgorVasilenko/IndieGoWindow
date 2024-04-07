@@ -95,6 +95,7 @@ int main(){
             checkVal.push_back(keyval.first);
             checkVal += ": " + std::to_string(keyval.second.pressed) + " ";
         }
+        mainWin.printOnScreen(checkVal);
 
         // Display input data on screen
         mainWin.printOnScreen(mainWin.name);
