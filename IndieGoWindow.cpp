@@ -223,7 +223,7 @@ std::string screen_log_line = "_screen_log_line_";
 std::string system_log_line = "_system_log_line_";
 
 void Window::printInLog(const std::string & line) {
-#if !defined RELEASE_BUILD || defined EDITOR
+// #if !defined RELEASE_BUILD || defined EDITOR
     std::string currLineName = sysLogLineName + std::to_string(system_log_lines_total);
     WIDGET & systemLog = GUI.widgets[name][systemLogName];
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -232,7 +232,7 @@ void Window::printInLog(const std::string & line) {
     UIMap[currLineName].label = line;
     system_log_lines_total++;
     systemLog.updateRowHeight(system_log_lines_total - 1, 0.04f);
-#endif
+// #endif
 }
 
 void Window::printOnScreen(const std::string & line) {

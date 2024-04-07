@@ -11,8 +11,8 @@ if (NOT DEFINED INDIEGO_UI)
     message(FATAL_ERROR "INDIEGO_UI path is not defined! Please, provide with -DINDIEGO_UI")
 endif()
 
-set(RENDERER_INCLUDES .. ../os)
-set(RENDERER_SRC ../IndieGoWindow.cpp src/app.cpp src/glad.cpp)
+set(RENDERER_INCLUDES .. $ENV{OS_HOME})
+set(RENDERER_SRC ../IndieGoWindow.cpp src/app.cpp $ENV{OS_HOME}/glad/glad.cpp)
 
 if (DEFINED INDIEGO_UI)
     set(RENDERER_INCLUDES ${RENDERER_INCLUDES} ${INDIEGO_UI})
@@ -35,7 +35,7 @@ target_include_directories(
 # link glfw library
 target_link_libraries(
     WindowDemo
-    PUBLIC "../lib/glfw3"
+    PUBLIC $ENV{DEPS_HOME}/glfw/glfw3.lib
 )
 
 target_compile_definitions(
