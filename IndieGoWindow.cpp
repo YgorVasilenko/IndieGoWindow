@@ -38,6 +38,8 @@ void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int act
     screen.mouse[button].pressed = action;
 }
 
+void (*IndieGo::Win::Window::scrollCallback)(void*) = NULL;
+
 void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 }
@@ -150,6 +152,11 @@ void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, dou
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     GUI.scroll(&Window::screens[window]->name, xoffset, yoffset);
     Window & screen = *Window::screens[window];
+
+    if (IndieGo::Win::Window::scrollCallback) {
+        IndieGo::Win::Window::scrollCallback(nullptr);
+    }
+
     // don't process scroll, if mouse is over any widget, but screen log.
     if (GUI.hoveredWidgets[screen.name] && GUI.hoveredWidgets[screen.name]->name != screen.name + "_screenLog") {
         return;
