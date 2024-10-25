@@ -88,9 +88,7 @@ namespace IndieGo {
             }
             ButtonState & operator[](int keycode){
                 return keys[keycode];
-            }
-
-            
+            }   
         };
 
         // Gamepad is a keyboard with analog sticks
@@ -158,6 +156,7 @@ namespace IndieGo {
             // restores window (f.e. from fullscreen)
             void restore();
             void goFullscreen();
+            void goBorderless();
 
             void toggleVsync();
 
@@ -177,11 +176,13 @@ namespace IndieGo {
 
             unsigned int framesCounter = 0;
             bool isFullscreen() { return _fullscreen; };
+            bool isBorderless() { return _borderless; };
             bool isVsyncOn() { return _vsync; };
 
         private:
             bool _vsync = true;
             bool _fullscreen = false;
+            bool _borderless = false;
             // logging
             std::string systemLogName, screenLogName, logLineName, sysLogLineName;
 

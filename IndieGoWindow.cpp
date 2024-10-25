@@ -176,11 +176,32 @@ void Window::restore() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     for (auto windows : screens) {
         if (windows.second == this) {
+            glfwSetWindowAttrib(windows.first, GLFW_DECORATED, GLFW_TRUE);
             glfwSetWindowMonitor(windows.first, nullptr, winPos[0], winPos[1], width, height, 0);
             break;
         }
     }
     _fullscreen = false;
+    _borderless = false;
+}
+
+void Window::goBorderless() {
+    if (_borderless)
+        return;
+
+    if (_fullscreen) {
+        restore();
+    }
+    GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode * mode = glfwGetVideoMode(monitor);
+    for (auto windows : screens) {
+        if (windows.second == this) {
+            glfwSetWindowAttrib(windows.first, GLFW_DECORATED, GLFW_FALSE);
+            glfwSetWindowPos(windows.first, (mode->width - width) / 2, (mode->height - height) / 2);
+            break;
+        }
+    }
+    _borderless = true;
 }
 
 void Window::goFullscreen() {
@@ -193,6 +214,7 @@ void Window::goFullscreen() {
         }
     }
     _fullscreen = true;
+    _borderless = false;
 }
 
 void Window::onFrameStart() {
@@ -330,9 +352,16 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     _fullscreen = fullscreen;
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+    // const GLFWvidmode * mode = glfwGetVideoMode(monitor);
+    // std::cout << "width: " << mode->width << "\n";
+    // std::cout << "height: " << mode->height << "\n";
 
     GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-    // screen->monitor;
+
+    // glfwSetWindowAttrib(screen, GLFW_DECORATED, GLFW_FALSE);
+    // glfwSetWindowPos(screen, (mode->width - width) / 2, (mode->height - height) / 2);
+
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
