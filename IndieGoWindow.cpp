@@ -38,7 +38,8 @@ void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int act
     screen.mouse[button].pressed = action;
 }
 
-void (*IndieGo::Win::Window::scrollCallback)(void*) = NULL;
+void (*IndieGo::Win::Window::scrollCallback)(void*) = nullptr;
+void (*IndieGo::Win::Window::keyCallback)(unsigned int) = nullptr;
 
 void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
@@ -112,6 +113,8 @@ void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int a
             );
     }
     GUI.key_input(&screen.name, key, isPressed);
+    if (Window::keyCallback)
+        Window::keyCallback(key);
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
@@ -342,8 +345,10 @@ void IndieGo::Win::Window::toggleVsync() {
 // #include <tchar.h>
 #endif
 
-#include <filesystem>
-namespace fs = std::filesystem;
+// #include <filesystem>
+// namespace fs = std::filesystem;
+
+// extern void flushLog(const char * message);
 
 IndieGo::Win::Window::Window(const int & width_, const int & height_, const std::string & name_, Window * parent, bool fullscreen){
     width = width_;
@@ -367,13 +372,16 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     if (!gladInitialized) {
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
             std::cout << "Failed to initialize GLAD" << std::endl;
+            // flushLog("Failed to initialize GLAD");
             return;
         }
         gladInitialized = true;
         mainScreen = screen;
         // GUI gets initialized with first created window
         GUI.init(name, screen);
-        std::cout << glfwGetVersionString() << std::endl;  
+        std::cout << glfwGetVersionString() << std::endl;
+        // flushLog("GLAD initialize success");
+        // flushLog(glfwGetVersionString());
     } else {
         GUI.addWindow(name, screen);
     }

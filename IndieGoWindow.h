@@ -112,6 +112,7 @@ namespace IndieGo {
             Keyboard keyboard;
             Mouse mouse;
             static void (*scrollCallback)(void*);
+            static void (*keyCallback)(unsigned int);
 
             Gamepad joystick_state[MAX_GAMEPADS];
             static int attached_joysticks[MAX_GAMEPADS];
