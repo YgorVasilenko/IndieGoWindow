@@ -27,7 +27,7 @@ namespace IndieGo {
         struct WIDGET;
     }
     enum class LANG_LOCALE {
-        rus, eng
+        rus, eng, pt, es, zh, br
     };
 
     // for flipping images
