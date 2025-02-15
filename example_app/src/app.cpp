@@ -66,6 +66,7 @@ int main(){
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     Window mainWin(WIDTH, HEIGHT);
+    Window * refWin = &mainWin;
     glViewport(0, 0, WIDTH, HEIGHT);
 
 
@@ -73,6 +74,12 @@ int main(){
     for (auto line : exampleLogText) {
         mainWin.printInLog(line);
     }
+    mainWin.keyboard.keys[GLFW_KEY_F].pressCallback = {
+        nullptr,
+        [refWin](void*) {
+            refWin->flushSystemLog("IndieGoWin.log");
+        }
+    };
 
     std::string checkVal;
     double lastScrollOffset = 0;
@@ -88,6 +95,7 @@ int main(){
             checkVal.push_back(keyval.first);
             checkVal += ": " + std::to_string(keyval.second.pressed) + " ";
         }
+        mainWin.printOnScreen(checkVal);
 
         // Display input data on screen
         mainWin.printOnScreen(mainWin.name);

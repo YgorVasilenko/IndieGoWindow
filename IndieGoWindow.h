@@ -27,7 +27,7 @@ namespace IndieGo {
         struct WIDGET;
     }
     enum class LANG_LOCALE {
-        rus, eng
+        rus, eng, pt, es, zh, br
     };
 
     // for flipping images
@@ -88,7 +88,7 @@ namespace IndieGo {
             }
             ButtonState & operator[](int keycode){
                 return keys[keycode];
-            }
+            }   
         };
 
         // Gamepad is a keyboard with analog sticks
@@ -111,6 +111,8 @@ namespace IndieGo {
         struct Window {
             Keyboard keyboard;
             Mouse mouse;
+            static void (*scrollCallback)(void*);
+            static void (*keyCallback)(unsigned int);
 
             Gamepad joystick_state[MAX_GAMEPADS];
             static int attached_joysticks[MAX_GAMEPADS];
@@ -155,6 +157,7 @@ namespace IndieGo {
             // restores window (f.e. from fullscreen)
             void restore();
             void goFullscreen();
+            void goBorderless();
 
             void toggleVsync();
 
@@ -170,18 +173,17 @@ namespace IndieGo {
             // stay, unless explicitly deleted by Window user. 
             // System log could be flushed to file.
             virtual void printInLog(const std::string & line);
-            virtual void flushSystemLog(std::string & logPath) {
-                // TODO
-            };
-
+            virtual void flushSystemLog(const std::string & logPath);
 
             unsigned int framesCounter = 0;
             bool isFullscreen() { return _fullscreen; };
+            bool isBorderless() { return _borderless; };
             bool isVsyncOn() { return _vsync; };
 
         private:
             bool _vsync = true;
             bool _fullscreen = false;
+            bool _borderless = false;
             // logging
             std::string systemLogName, screenLogName, logLineName, sysLogLineName;
 

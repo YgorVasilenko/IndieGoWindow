@@ -38,6 +38,9 @@ void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int act
     screen.mouse[button].pressed = action;
 }
 
+void (*IndieGo::Win::Window::scrollCallback)(void*) = nullptr;
+void (*IndieGo::Win::Window::keyCallback)(unsigned int) = nullptr;
+
 void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 }
@@ -110,6 +113,8 @@ void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int a
             );
     }
     GUI.key_input(&screen.name, key, isPressed);
+    if (Window::keyCallback)
+        Window::keyCallback(key);
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
@@ -150,6 +155,11 @@ void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, dou
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     GUI.scroll(&Window::screens[window]->name, xoffset, yoffset);
     Window & screen = *Window::screens[window];
+
+    if (IndieGo::Win::Window::scrollCallback) {
+        IndieGo::Win::Window::scrollCallback(nullptr);
+    }
+
     // don't process scroll, if mouse is over any widget, but screen log.
     if (GUI.hoveredWidgets[screen.name] && GUI.hoveredWidgets[screen.name]->name != screen.name + "_screenLog") {
         return;
@@ -169,11 +179,32 @@ void Window::restore() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     for (auto windows : screens) {
         if (windows.second == this) {
+            glfwSetWindowAttrib(windows.first, GLFW_DECORATED, GLFW_TRUE);
             glfwSetWindowMonitor(windows.first, nullptr, winPos[0], winPos[1], width, height, 0);
             break;
         }
     }
     _fullscreen = false;
+    _borderless = false;
+}
+
+void Window::goBorderless() {
+    if (_borderless)
+        return;
+
+    if (_fullscreen) {
+        restore();
+    }
+    GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode * mode = glfwGetVideoMode(monitor);
+    for (auto windows : screens) {
+        if (windows.second == this) {
+            glfwSetWindowAttrib(windows.first, GLFW_DECORATED, GLFW_FALSE);
+            glfwSetWindowPos(windows.first, (mode->width - width) / 2, (mode->height - height) / 2);
+            break;
+        }
+    }
+    _borderless = true;
 }
 
 void Window::goFullscreen() {
@@ -186,6 +217,7 @@ void Window::goFullscreen() {
         }
     }
     _fullscreen = true;
+    _borderless = false;
 }
 
 void Window::onFrameStart() {
@@ -223,7 +255,7 @@ std::string screen_log_line = "_screen_log_line_";
 std::string system_log_line = "_system_log_line_";
 
 void Window::printInLog(const std::string & line) {
-#if !defined RELEASE_BUILD || defined EDITOR
+// #if !defined RELEASE_BUILD || defined EDITOR
     std::string currLineName = sysLogLineName + std::to_string(system_log_lines_total);
     WIDGET & systemLog = GUI.widgets[name][systemLogName];
     UI_elements_map & UIMap = GUI.UIMaps[name];
@@ -232,7 +264,7 @@ void Window::printInLog(const std::string & line) {
     UIMap[currLineName].label = line;
     system_log_lines_total++;
     systemLog.updateRowHeight(system_log_lines_total - 1, 0.04f);
-#endif
+// #endif
 }
 
 void Window::printOnScreen(const std::string & line) {
@@ -313,8 +345,10 @@ void IndieGo::Win::Window::toggleVsync() {
 // #include <tchar.h>
 #endif
 
-#include <filesystem>
-namespace fs = std::filesystem;
+// #include <filesystem>
+// namespace fs = std::filesystem;
+
+// extern void flushLog(const char * message);
 
 IndieGo::Win::Window::Window(const int & width_, const int & height_, const std::string & name_, Window * parent, bool fullscreen){
     width = width_;
@@ -323,21 +357,31 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     _fullscreen = fullscreen;
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+    // const GLFWvidmode * mode = glfwGetVideoMode(monitor);
+    // std::cout << "width: " << mode->width << "\n";
+    // std::cout << "height: " << mode->height << "\n";
 
     GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-    // screen->monitor;
+
+    // glfwSetWindowAttrib(screen, GLFW_DECORATED, GLFW_FALSE);
+    // glfwSetWindowPos(screen, (mode->width - width) / 2, (mode->height - height) / 2);
+
     screens[ screen ] = this;
 	glfwMakeContextCurrent(screen);
     if (!gladInitialized) {
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
             std::cout << "Failed to initialize GLAD" << std::endl;
+            // flushLog("Failed to initialize GLAD");
             return;
         }
         gladInitialized = true;
         mainScreen = screen;
         // GUI gets initialized with first created window
         GUI.init(name, screen);
-        std::cout << glfwGetVersionString() << std::endl;  
+        std::cout << glfwGetVersionString() << std::endl;
+        // flushLog("GLAD initialize success");
+        // flushLog(glfwGetVersionString());
     } else {
         GUI.addWindow(name, screen);
     }
@@ -460,6 +504,18 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
                 main_joystick = i;
         }
     }
+}
+
+void IndieGo::Win::Window::flushSystemLog(const std::string & logPath) {
+    std::ofstream outFile(logPath);
+    if (outFile.is_open()) {
+        UI_elements_map & UIMap = GUI.UIMaps[name];
+        for (int i = 0; i < system_log_lines_total; i++) {
+            std::string currLineName = sysLogLineName + std::to_string(i);
+            outFile << UIMap[currLineName].label << std::endl;
+        }
+    }
+    outFile.close();
 }
 
 IndieGo::Win::Window::~Window() {
