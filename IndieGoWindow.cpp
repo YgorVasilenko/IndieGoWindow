@@ -1,78 +1,82 @@
 #include <IndieGoWindow.h>
 #include <glad/glad.h>
+
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
 #include <fstream>
+// #include <memory>
+#include <iostream>
 
 // on-screen auto logging, FPS counter
-// 2 types of logging 
-// - persistent -> usual log, could be flushed to file
-// - per-frame call -> data collected in single line 
 #include <IndieGoUI.h>
+#include <Renderer.h>
+
+using namespace IndieGo::vkI;
+
+#ifndef WIDTH 
+#define WIDTH 1920
+#endif
+
+#ifndef HEIGHT 
+#define HEIGHT 1080
+#endif
 
 using namespace IndieGo::UI;
 using namespace IndieGo::Win;
 
-Manager GUI;
+// using namespace std;
 
-void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {
+Keyboard Window::keyboard = {};
+Mouse Window::mouse = {};
+Gamepad Window::joystick_state[MAX_GAMEPADS] = {};
 
-}
+void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {}
 
 void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    Window & screen = *Window::screens[window];
     // don't process mouse clicks, if mouse is over any widget, but screen log.
     if (action) {
-        if (GUI.hoveredWidgets[screen.name] && GUI.hoveredWidgets[screen.name]->name != screen.name + "_screenLog"){
+        if (Manager::hoveredWidget && Manager::hoveredWidget->name != App::appWindow.name + "_screenLog"){
             return;
         }
-        if (screen.mouse[button].pressCallback.second)
-            screen.mouse[button].pressCallback.second(
-                screen.mouse[button].pressCallback.first
+        if (Window::mouse[button].pressCallback.second)
+            Window::mouse[button].pressCallback.second(
+                Window::mouse[button].pressCallback.first
             );
     } else {
-        if (screen.mouse[button].releaseCallback.second)
-            screen.mouse[button].releaseCallback.second(
-                screen.mouse[button].releaseCallback.first
+        if (Window::mouse[button].releaseCallback.second)
+            Window::mouse[button].releaseCallback.second(
+                Window::mouse[button].releaseCallback.first
             );
     }
-    screen.mouse[button].pressed = action;
+    Window::mouse[button].pressed = action;
 }
 
-void (*IndieGo::Win::Window::scrollCallback)(void*) = nullptr;
-void (*IndieGo::Win::Window::keyCallback)(unsigned int) = nullptr;
-
-void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-
-}
+void IndieGo::Win::framebuffer_size_callback(GLFWwindow* window, int width, int height) {}
 
 void IndieGo::Win::window_size_callback(GLFWwindow* window, int width, int height) {
-    Window & screen = *Window::screens[window];
-    screen.width = width;
-    screen.height = height;
+    App::appWindow.width = width;
+    App::appWindow.height = height;
 
-    GUI.screen_size.w = width;
-    GUI.screen_size.h = height;
+    Manager::screen_size.w = width;
+    Manager::screen_size.h = height;
 }
 
-#include <iostream>
 void IndieGo::Win::window_close_callback(GLFWwindow* window) {
-    Window & screen = *Window::screens[window];
-    std::cout << "[WINDOW::INFO] calling window_close_callback for " << screen.name << "!" << std::endl;
+    std::cout << "[WINDOW::INFO] calling window_close_callback for " << App::appWindow.name << "!" << std::endl;
 };
 
 void IndieGo::Win::takeScreenshot(GLFWwindow* window) {
     std::vector<PixelData> data;
-    Window & screen = *Window::screens[window];
-
-    data.resize( screen.width * screen.height );
+    data.resize( App::appWindow.width * App::appWindow.height );
     data.data();
-    glReadPixels(0, 0, screen.width, screen.height, GL_BGRA, GL_UNSIGNED_BYTE, data.data());
-    std::vector< PixelData > rgbadata(screen.width * screen.height);
+    glReadPixels(0, 0, App::appWindow.width, App::appWindow.height, GL_BGRA, GL_UNSIGNED_BYTE, data.data());
+    std::vector< PixelData > rgbadata(App::appWindow.width * App::appWindow.height);
 
     // vertical flip
-    for (int y = 0; y < screen.height; y++) {
-        for (int x = 0; x < screen.width; x++) {
-            rgbadata[ y * screen.width + x ] = data[ y * screen.width + ( screen.width - x - 1 ) ];
+    for (int y = 0; y < App::appWindow.height; y++) {
+        for (int x = 0; x < App::appWindow.width; x++) {
+            rgbadata[ y * App::appWindow.width + x ] = data[ y * App::appWindow.width + ( App::appWindow.width - x - 1 ) ];
         }
     }
 
@@ -84,35 +88,33 @@ void IndieGo::Win::takeScreenshot(GLFWwindow* window) {
 
     glfwSetClipboardBitmap(
         reinterpret_cast<unsigned char*>(rgbadata.data()), 
-        screen.width, 
-        screen.height
+        App::appWindow.width, 
+        App::appWindow.height
     );
 }
 
 void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     bool isPressed = glfwGetKey(window, key) == GLFW_PRESS;
-    Window & screen = *Window::screens[window];
 
-    screen.keyboard[key].pressed = isPressed;
-    screen.keyboard.lastPressedKey = key;
-    screen.keyboard.pressFlag = true;
+    App::appWindow.keyboard[key].pressed = isPressed;
+    App::appWindow.keyboard.lastPressedKey = key;
+    App::appWindow.keyboard.pressFlag = true;
 
     if (isPressed) {
-        if (screen.keyboard[key].pressCallback.second)
-            screen.keyboard[key].pressCallback.second(
-                screen.keyboard[key].pressCallback.first
+        if (App::appWindow.keyboard[key].pressCallback.second)
+            App::appWindow.keyboard[key].pressCallback.second(
+                App::appWindow.keyboard[key].pressCallback.first
             );
         
-        if (key == GLFW_KEY_PRINT_SCREEN && Window::screens[window]->isFullscreen()) {
+        if (key == GLFW_KEY_PRINT_SCREEN && App::appWindow.isFullscreen()) {
             IndieGo::Win::takeScreenshot(window);
         }
     } else { 
-        if (screen.keyboard[key].releaseCallback.second)
-            screen.keyboard[key].pressCallback.second(
-                screen.keyboard[key].pressCallback.first
+        if (App::appWindow.keyboard[key].releaseCallback.second)
+            App::appWindow.keyboard[key].pressCallback.second(
+                App::appWindow.keyboard[key].pressCallback.first
             );
     }
-    GUI.key_input(&screen.name, key, isPressed);
     if (Window::keyCallback)
         Window::keyCallback(key);
 }
@@ -141,49 +143,37 @@ void IndieGo::Win::joystick_callback(int jid, int _event) {
 }
 
 void IndieGo::Win::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-    Window & screen = *Window::screens[window];
-    screen.mouse.dX = (screen.mouse.x - xpos) / screen.width;
-    screen.mouse.dY = (screen.mouse.y - ypos) / screen.height;
+    App::appWindow.mouse.dX = (App::appWindow.mouse.x - xpos) / App::appWindow.width;
+    App::appWindow.mouse.dY = (App::appWindow.mouse.y - ypos) / App::appWindow.height;
 
-    screen.mouse.prevX = screen.mouse.x;
-    screen.mouse.prevY = screen.mouse.y;
+    App::appWindow.mouse.prevX = App::appWindow.mouse.x;
+    App::appWindow.mouse.prevY = App::appWindow.mouse.y;
 
-    screen.mouse.x = xpos;
-    screen.mouse.y = ypos;
+    App::appWindow.mouse.x = xpos;
+    App::appWindow.mouse.y = ypos;
 }
 
 void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    GUI.scroll(&Window::screens[window]->name, xoffset, yoffset);
-    Window & screen = *Window::screens[window];
-
     if (IndieGo::Win::Window::scrollCallback) {
         IndieGo::Win::Window::scrollCallback(nullptr);
     }
 
     // don't process scroll, if mouse is over any widget, but screen log.
-    if (GUI.hoveredWidgets[screen.name] && GUI.hoveredWidgets[screen.name]->name != screen.name + "_screenLog") {
+    if (Manager::hoveredWidget && Manager::hoveredWidget->name != App::appWindow.name + "_screenLog") {
         return;
     }
-    screen.scrollOffset = yoffset;
+    App::appWindow.scrollOffset = yoffset;
 }
 
-void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {
-    GUI.char_input(&Window::screens[window]->name, codepoint);
-}
+void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {}
 
-void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {
-	
-}
+void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {}
 
 void Window::restore() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    for (auto windows : screens) {
-        if (windows.second == this) {
-            glfwSetWindowAttrib(windows.first, GLFW_DECORATED, GLFW_TRUE);
-            glfwSetWindowMonitor(windows.first, nullptr, winPos[0], winPos[1], width, height, 0);
-            break;
-        }
-    }
+    glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE);
+    glfwSetWindowMonitor(window, nullptr, winPos[0], winPos[1], width, height, 0);
+
     _fullscreen = false;
     _borderless = false;
 }
@@ -197,41 +187,21 @@ void Window::goBorderless() {
     }
     GLFWmonitor * monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode * mode = glfwGetVideoMode(monitor);
-    for (auto windows : screens) {
-        if (windows.second == this) {
-            glfwSetWindowAttrib(windows.first, GLFW_DECORATED, GLFW_FALSE);
-            glfwSetWindowPos(windows.first, (mode->width - width) / 2, (mode->height - height) / 2);
-            break;
-        }
-    }
+    glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+    glfwSetWindowPos(window, (mode->width - width) / 2, (mode->height - height) / 2);
     _borderless = true;
 }
 
 void Window::goFullscreen() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    for (auto windows : screens) {
-        if (windows.second == this) {
-            glfwGetWindowPos(windows.first, &winPos[0], &winPos[1]);
-            glfwSetWindowMonitor(windows.first, monitor, 0, 0, width, height, 0);
-            break;
-        }
-    }
+    glfwGetWindowPos(window, &winPos[0], &winPos[1]);
+    glfwSetWindowMonitor(window, monitor, 0, 0, width, height, 0);
+
     _fullscreen = true;
     _borderless = false;
 }
 
 void Window::onFrameStart() {
-#ifdef INDIEGO_ENGINE_DEV
-    for (auto windows : screens) {
-        if (windows.second == this) {
-            // make context current here to be able to use multiple windows in one app
-            // TODO : get rid of iteration over map?
-            glfwMakeContextCurrent(windows.first);
-            break;
-        }
-    }
-#endif
-
     // joysticks input fetch
     GLFWgamepadstate state;
     for (int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
@@ -252,29 +222,13 @@ void Window::onFrameStart() {
 
 // logging
 std::string screen_log_line = "_screen_log_line_";
-std::string system_log_line = "_system_log_line_";
-
-void Window::printInLog(const std::string & line) {
-// #if !defined RELEASE_BUILD || defined EDITOR
-    std::string currLineName = sysLogLineName + std::to_string(system_log_lines_total);
-    WIDGET & systemLog = GUI.widgets[name][systemLogName];
-    UI_elements_map & UIMap = GUI.UIMaps[name];
-    UIMap.addElement(currLineName, UI_STRING_LABEL, &systemLog);
-    UIMap[currLineName].text_align = LEFT;
-    UIMap[currLineName].label = line;
-    system_log_lines_total++;
-    systemLog.updateRowHeight(system_log_lines_total - 1, 0.04f);
-// #endif
-}
-
 void Window::printOnScreen(const std::string & line) {
-// #if !defined RELEASE_BUILD || defined EDITOR || defined PROFILE
-    UI_elements_map & UIMap = GUI.UIMaps[name];
+    UI_elements_map & UIMap = Manager::UIMap;
     std::string currLineName = logLineName + std::to_string(screen_log_lines_taken);
 
     if (screen_log_lines_taken >= screen_log_lines_total) {
         // TODO : check, if screen log widget should be extended
-        WIDGET & screenLog = GUI.widgets[name][screenLogName];
+        WIDGET & screenLog = Manager::widgets[screenLogName];
         UIMap.addElement(currLineName, UI_STRING_LABEL, &screenLog);
         UIMap[currLineName].text_align = LEFT;
         screen_log_lines_total++;
@@ -283,20 +237,17 @@ void Window::printOnScreen(const std::string & line) {
 
     UIMap[currLineName].label = line;
     screen_log_lines_taken++;
-// #endif
 }
 
 void Window::clearScreenLog() {
-// #if !defined RELEASE_BUILD || defined EDITOR || defined PROFILE
     if ( screen_log_lines_total == 0 ) return;
     std::string currLineName;
-    UI_elements_map & UIMap = GUI.UIMaps[name];
+    UI_elements_map & UIMap = Manager::UIMap;
     for (int i = 0; i < screen_log_lines_total; i++){
         currLineName = logLineName + std::to_string(i);
         UIMap[currLineName].label = "";
     }
     screen_log_lines_taken = 0;
-// #endif
 }
 
 void Window::onFrameEnd() {
@@ -322,14 +273,7 @@ void Window::onFrameEnd() {
     keyboard.pressFlag = false;
     
     if (shouldClose) {
-        GLFWwindow* m_screen = NULL;
-        for (auto screen : screens) {
-            if (screen.second->name == name) {
-                m_screen = screen.first;
-                break;
-            }
-        }
-        glfwSetWindowShouldClose(m_screen, 1);
+        glfwSetWindowShouldClose(window, 1);
     }
 }
 
@@ -338,79 +282,39 @@ void IndieGo::Win::Window::toggleVsync() {
     glfwSwapInterval(_vsync);
 }
 
-// #include <iostream>
-
-#ifdef _WIN32 // it seems there is no cpp cross-platform way to get executable path
-#include <windows.h>
-// #include <tchar.h>
-#endif
-
-// #include <filesystem>
-// namespace fs = std::filesystem;
-
-// extern void flushLog(const char * message);
-
-IndieGo::Win::Window::Window(const int & width_, const int & height_, const std::string & name_, Window * parent, bool fullscreen){
+void IndieGo::Win::Window::create(const int & width_, const int & height_, const std::string & name_, bool fullscreen) {
     width = width_;
     height = height_;
     name = name_;
     _fullscreen = fullscreen;
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
+	// glfwMakeContextCurrent(window);
+    // std::cout << glfwGetVersionString() << std::endl;
+}
 
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    // GLFWmonitor * monitor = glfwGetPrimaryMonitor();
-    // const GLFWvidmode * mode = glfwGetVideoMode(monitor);
-    // std::cout << "width: " << mode->width << "\n";
-    // std::cout << "height: " << mode->height << "\n";
-
-    GLFWwindow* screen = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
-
-    // glfwSetWindowAttrib(screen, GLFW_DECORATED, GLFW_FALSE);
-    // glfwSetWindowPos(screen, (mode->width - width) / 2, (mode->height - height) / 2);
-
-    screens[ screen ] = this;
-	glfwMakeContextCurrent(screen);
-    if (!gladInitialized) {
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-            std::cout << "Failed to initialize GLAD" << std::endl;
-            // flushLog("Failed to initialize GLAD");
-            return;
-        }
-        gladInitialized = true;
-        mainScreen = screen;
-        // GUI gets initialized with first created window
-        GUI.init(name, screen);
-        std::cout << glfwGetVersionString() << std::endl;
-        // flushLog("GLAD initialize success");
-        // flushLog(glfwGetVersionString());
-    } else {
-        GUI.addWindow(name, screen);
-    }
-
-    if (fullscreen) {
+void IndieGo::Win::Window::init() {
+    if (_fullscreen) {
         goFullscreen();
     }
 
-    GUI.screen_size.w = width;
-    GUI.screen_size.h = height;
+    Manager::screen_size.w = width;
+    Manager::screen_size.h = height;
 
-    glfwSetCursorPosCallback(screen, cursor_position_callback);
-    glfwSetMouseButtonCallback(screen, mouse_button_callback);
-    glfwSetWindowSizeCallback(screen, window_size_callback);
-    glfwSetWindowCloseCallback(screen, window_close_callback);
-    glfwSetScrollCallback(screen, scroll_callback);
-    glfwSetCharCallback(screen, char_callback);
-    glfwSetKeyCallback(screen, key_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetWindowSizeCallback(window, window_size_callback);
+    glfwSetWindowCloseCallback(window, window_close_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetCharCallback(window, char_callback);
+    glfwSetKeyCallback(window, key_callback);
     glfwSetJoystickCallback(joystick_callback);
 
     // vsync on by default
     glfwSwapInterval(_vsync);
 
-// #if !defined RELEASE_BUILD || defined EDITOR || defined PROFILE
-    // initialize UIMap for this window
-    // WIDGETS configured in *some* place of program,
-    // then COPIED to UIMap. 
-    WIDGET systemLog, screenLog;
-    systemLogName = name + "_systemLog";
+    WIDGET screenLog;
     screenLogName = name + "_screenLog";
     // Screen log initializarion
     screenLog.screen_region.x = 0;
@@ -433,67 +337,12 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     screenLog.style.elements[UI_COLOR_TEXT].g = 255;
     screenLog.style.elements[UI_COLOR_TEXT].b = 255;
     screenLog.forceNoFocus = true;
-
-    // System log widget initialization
-    systemLog.screen_region.x = 0.f;
-    systemLog.screen_region.y = 0.75f;
-    systemLog.screen_region.w = 0.5f;
-    systemLog.screen_region.h = 0.5f;
-    systemLog.custom_style = true;
-    systemLog.style.elements[UI_COLOR_WINDOW].a = 75;
-    systemLog.style.elements[UI_COLOR_TEXT].r = 255;
-    systemLog.style.elements[UI_COLOR_TEXT].g = 255;
-    systemLog.style.elements[UI_COLOR_TEXT].b = 255;
-
-    systemLog.name = systemLogName;
     screenLog.name = screenLogName;
-    GUI.addWidget(systemLog, name);
-    GUI.addWidget(screenLog, name);
+    GUI->addWidget(screenLog);
     logLineName = name + screen_log_line;
-    sysLogLineName = name + system_log_line;
-// #endif
 
     // initialize frame time here, to have sane duration
     frameStartTime = std::chrono::high_resolution_clock::now();
-
-#ifdef _WIN32
-    // get locale
-    if (GetUserDefaultLCID() == 0x0419){
-        locale = LANG_LOCALE::rus;
-    } else {
-        locale = LANG_LOCALE::eng;
-    }
-    
-#endif
-    if (!parent) {
-#ifdef _WIN32
-        TCHAR binary_path_[MAX_PATH] = { 0 };
-        GetModuleFileName(NULL, binary_path_, MAX_PATH);
-        binary_path = std::string(binary_path_);
-
-        SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-        home_dir = binary_path.parent_path();
-#else
-        home_dir = fs::current_path();
-#endif
-        std::cout << "Hello! My homedir is " << home_dir.string() << std::endl;
-    } else {
-        home_dir = parent->home_dir;
-
-        // switch context back to parent
-        glfwMakeContextCurrent(parent->getScreen());
-    }
-
-    // try loading mappings
-    std::ifstream mappings_data(fs::path(home_dir).append("gamecontrollerdb.txt"), std::ios::binary);
-    if (mappings_data.is_open()) {
-        mappings_data.seekg(0, mappings_data.end);
-        std::size_t size = mappings_data.tellg();
-        char* mappings = new char[size];
-        mappings_data.seekg(0, mappings_data.beg);
-        mappings_data.read(mappings, size);
-        glfwUpdateGamepadMappings(mappings);
-    }
 
     // check if joystick is plugged
     for (int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
@@ -506,29 +355,103 @@ IndieGo::Win::Window::Window(const int & width_, const int & height_, const std:
     }
 }
 
-void IndieGo::Win::Window::flushSystemLog(const std::string & logPath) {
-    std::ofstream outFile(logPath);
-    if (outFile.is_open()) {
-        UI_elements_map & UIMap = GUI.UIMaps[name];
-        for (int i = 0; i < system_log_lines_total; i++) {
-            std::string currLineName = sysLogLineName + std::to_string(i);
-            outFile << UIMap[currLineName].label << std::endl;
-        }
-    }
-    outFile.close();
-}
-
 IndieGo::Win::Window::~Window() {
-    std::cout << "[WINDOW::INFO] destructor for " << name << " is called!" << std::endl;
-    GUI.removeWindow(name, getScreen());
-    screens.erase(
-        screens.find(getScreen())
-    );
-    glfwDestroyWindow(getScreen());
+    glfwDestroyWindow(window);
 }
 
-bool IndieGo::Win::Window::gladInitialized = false;
-std::unordered_map< GLFWwindow*, IndieGo::Win::Window* > IndieGo::Win::Window::screens = {};
-GLFWwindow * IndieGo::Win::Window::mainScreen = NULL;
 int IndieGo::Win::Window::attached_joysticks[GLFW_JOYSTICK_LAST] = { 0 };
 int IndieGo::Win::Window::main_joystick = -1;
+void (*IndieGo::Win::Window::scrollCallback)(void*) = nullptr;
+void (*IndieGo::Win::Window::keyCallback)(unsigned int) = nullptr;
+IndieGo::Win::Window IndieGo::App::appWindow = {};
+
+// App items:
+#ifdef _WIN32 // it seems there is no cpp cross-platform way to get executable path
+#include <windows.h>
+#endif
+
+void IndieGo::App::initLocale() {
+#ifdef _WIN32
+    // get locale
+    if (GetUserDefaultLCID() == 0x0419){
+        locale = LANG_LOCALE::rus;
+    } else {
+        locale = LANG_LOCALE::eng;
+    }
+#endif
+};
+
+
+void IndieGo::App::initHomedir() {
+#ifdef _WIN32
+    TCHAR binary_path_[MAX_PATH] = { 0 };
+    GetModuleFileName(NULL, binary_path_, MAX_PATH);
+    binary_path = std::string(binary_path_);
+
+    SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+    home_dir = binary_path.parent_path();
+#else
+    home_dir = fs::current_path();
+#endif
+    std::cout << "IndieGo::App homedir is " << home_dir.string() << std::endl;
+
+    // try loading mappings
+    std::ifstream mappings_data(fs::path(home_dir).append("gamecontrollerdb.txt"), std::ios::binary);
+    if (mappings_data.is_open()) {
+        mappings_data.seekg(0, mappings_data.end);
+        size_t size = mappings_data.tellg();
+        char* mappings = new char[size];
+        mappings_data.seekg(0, mappings_data.beg);
+        mappings_data.read(mappings, size);
+        glfwUpdateGamepadMappings(mappings);
+    }
+}
+
+void IndieGo::App::run() {
+    while (!glfwWindowShouldClose(appWindow.window)) {
+        appWindow.onFrameStart();
+        processFrame();
+
+        Manager::drawFrameStart();
+        Manager::displayWidgets();
+        drawFrame();
+
+        appWindow.onFrameEnd();
+        glfwSwapBuffers(appWindow.window);
+	    glfwPollEvents();
+    }
+}
+
+void resizeUI() {
+    Manager::resize(
+        IndieGo::App::appWindow.width,
+        IndieGo::App::appWindow.height
+    );
+}
+
+void IndieGo::App::init() {
+    vkRenderer::resizeCallback = resizeUI;
+    appWindow.create(WIDTH, HEIGHT);
+    initLocale();
+    initHomedir();
+
+    vkI::window = appWindow.window;
+    initRenderingPipelines();
+    Manager::init(vkI::window, uiCanvHolder);
+    appWindow.init();
+}
+
+void IndieGo::App::drawFrame() {
+    vkRenderer::acquireImageFromSwapChain(uiCanvHolder.get());
+
+    // Render UI
+    Manager::currFrame = vkRenderer::currFrame;
+    Manager::drawFrameEnd();
+    drawAppData();
+    vkRenderer::presentImageToScreen(uiCanvHolder.get());
+}
+
+// TODO :
+// - "default" rendering pipeline with imageView for Ui
+// - screen_quad + inputs
+// - add items to inputs in editors and game

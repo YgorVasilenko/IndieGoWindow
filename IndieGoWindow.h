@@ -1,5 +1,3 @@
-#ifndef INDIEGO_WINDOW_H_
-#define INDIEGO_WINDOW_H_
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -7,6 +5,7 @@
 #include <chrono>
 #include <functional>
 #include <cassert>
+#include <memory>
 
 namespace fs = std::filesystem;
 //
@@ -25,6 +24,10 @@ struct GLFWwindow;
 namespace IndieGo {
     namespace UI {
         struct WIDGET;
+        struct Manager;
+    }
+    namespace vkI {
+        class vkRenderer;
     }
     enum class LANG_LOCALE {
         rus, eng, pt, es, zh, br
@@ -107,32 +110,19 @@ namespace IndieGo {
                 return keys[keycode];
             }
         };
-
-        struct Window {
-            Keyboard keyboard;
-            Mouse mouse;
+        class Window {
+        public:
+            static Keyboard keyboard;
+            static Mouse mouse;
             static void (*scrollCallback)(void*);
             static void (*keyCallback)(unsigned int);
 
-            Gamepad joystick_state[MAX_GAMEPADS];
+            static Gamepad joystick_state[MAX_GAMEPADS];
             static int attached_joysticks[MAX_GAMEPADS];
             static int main_joystick;
 
             bool shouldClose = false;
-            LANG_LOCALE locale = LANG_LOCALE::rus;
-            
-            // Window is close to OS, so let it keep this data
-            fs::path home_dir, binary_path;
-
             double scrollOffset = 0;
-            
-            // system will send signals to app's GLFWwindow*
-            // this will be global app's windows list
-            static std::unordered_map< GLFWwindow*, Window* > screens;
-
-            // Created first
-            static GLFWwindow * mainScreen;
-            static bool gladInitialized;
 
             // time measurments
 	        unsigned int fps = 0;
@@ -141,18 +131,15 @@ namespace IndieGo {
 
             std::string name;
             int width, height;
-            Window(const int & width_ = 1280, const int & height_ = 800, const std::string & name_ = "IndieGo Window", Window * parent = nullptr, bool fullscreen = false);
-            
-            // Removes widgets and win ptr from GUI manager
-            ~Window();
 
-            GLFWwindow* getScreen() { 
-                for (auto screen : screens) {
-                    if (screen.second == this)
-                        return screen.first;
-                }
-                return nullptr; 
-            }
+            GLFWwindow * window = nullptr;
+            UI::Manager * GUI = nullptr;
+            void create(const int & width_ = 1280, const int & height_ = 800, const std::string & name_ = "IndieGo Window", bool fullscreen = false);
+            void init();
+            // Removes widgets and win ptr from GUI manager
+            ~Window();  
+
+            
 
             // restores window (f.e. from fullscreen)
             void restore();
@@ -169,23 +156,17 @@ namespace IndieGo {
             // displayed, only if passed to printOnScreen() during frame processing
             virtual void printOnScreen(const std::string & line);
 
-            // adds line to system log. System log is persistent - all lines will 
-            // stay, unless explicitly deleted by Window user. 
-            // System log could be flushed to file.
-            virtual void printInLog(const std::string & line);
-            virtual void flushSystemLog(const std::string & logPath);
-
             unsigned int framesCounter = 0;
             bool isFullscreen() { return _fullscreen; };
             bool isBorderless() { return _borderless; };
             bool isVsyncOn() { return _vsync; };
 
-        private:
+        protected:
             bool _vsync = true;
             bool _fullscreen = false;
             bool _borderless = false;
             // logging
-            std::string systemLogName, screenLogName, logLineName, sysLogLineName;
+            std::string screenLogName, logLineName;
 
             // lines in screen log added during whole runtime
             unsigned int screen_log_lines_total = 0;
@@ -201,13 +182,29 @@ namespace IndieGo {
             void clearScreenLog();
 
             // time measurement
-            // double frameStartTime = 0.0;
             std::chrono::steady_clock::time_point frameStartTime;
             double timeCounter = 0.0;
-            // unsigned int framesCounter = 0;
             int winPos[2] = { 0, 0 };
 
         };
     }
+
+    class App {
+        LANG_LOCALE locale = LANG_LOCALE::rus;
+        protected:
+            void initLocale();
+            void initHomedir();
+            void loadMappings();
+            std::shared_ptr<vkI::vkRenderer> uiCanvHolder;
+
+        public:
+        fs::path home_dir, binary_path;
+        static Win::Window appWindow;
+        virtual void init();
+        virtual void initRenderingPipelines() = 0;
+        virtual void drawFrame();
+        virtual void drawAppData() = 0;
+        virtual void processFrame() = 0;
+        virtual void run();
+    };
 }
-#endif

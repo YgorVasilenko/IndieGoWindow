@@ -1,48 +1,71 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(WindowDemo VERSION 1.0)
+set(CMAKE_MODULE_PATH $ENV{VK_RENDERER_HOME})
+include(system)
 
-# Assume env vars set
-if(NOT DEFINED INDIEGO_UI)
-    file(TO_CMAKE_PATH $ENV{INDIEGO_UI_HOME} INDIEGO_UI)
-endif()
+file(GLOB RENDERER_SRC ${VK_RENDERER_HOME}/renderer/*.cpp)
+file(GLOB EDITOR_SRC ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
 
-if (NOT DEFINED INDIEGO_UI)
-    message(FATAL_ERROR "INDIEGO_UI path is not defined! Please, provide with -DINDIEGO_UI")
-endif()
+set(
+    INCLUDES 
+    ${OS_HOME}
+    ${DEPS_HOME}
+    ${SHADERS_HOME}
+    ${VK_RENDERER_HOME}/renderer/
+    ${UI_HOME}/
+    ${UI_HOME}/backend/
+    ${PROTOBUF_HOME}/src
+    ${VULKAN_INCLUDES}
+    ${CMAKE_CURRENT_LIST_DIR}/../
+    # ${STB_HOME}
+)
 
-set(RENDERER_INCLUDES .. $ENV{OS_HOME})
-set(RENDERER_SRC ../IndieGoWindow.cpp src/app.cpp $ENV{OS_HOME}/glad/glad.cpp)
+set(
+    SRC
+    ${EDITOR_SRC}
+    ${RENDERER_SRC}
+    ${OS_HOME}/glad/glad.cpp
+    ${UI_HOME}/IndieGoUI.cpp
+    ${UI_HOME}/backend/renderer.cpp
+    ${SHADERS_HOME}/Shader.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/../IndieGoWindow.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/../default_pipeline.cpp
+)
 
-if (DEFINED INDIEGO_UI)
-    set(RENDERER_INCLUDES ${RENDERER_INCLUDES} ${INDIEGO_UI})
-    set(RENDERER_SRC ${RENDERER_SRC} ${INDIEGO_UI}/backends/Nuklear/renderer.cpp ${INDIEGO_UI}/IndieGoUI.cpp)
-endif()
-
-message(STATUS "RENDERER_INCLUDES: ${RENDERER_INCLUDES}")
-message(STATUS "RENDERER_SRC: ${RENDERER_SRC}")
+message("SRC: ${SRC}")
+message("INCLUDES: ${INCLUDES}")
 
 add_executable(
-    WindowDemo
-    ${RENDERER_SRC}
+    WindowDemo MACOSX_BUNDLE
+    ${SRC}
 )
 
 target_include_directories(
     WindowDemo
-    PUBLIC ${RENDERER_INCLUDES}
+    PUBLIC 
+    ${INCLUDES}
 )
 
-# link glfw library
+
+# link glfw and opencv libraries
 target_link_libraries(
     WindowDemo
-    PUBLIC $ENV{DEPS_HOME}/glfw/glfw3.lib
+    PUBLIC
+        ${VULKAN_LIBS}
+        ${PROTOBUF_LIB}
 )
 
 target_compile_definitions(
-    WindowDemo PUBLIC 
-        NO_SERIALIZATION=1
-        WIDTH=1920
-        HEIGHT=1080
+    WindowDemo PUBLIC
+    WIDTH=1920
+    HEIGHT=1080
+    UI_FLT_VAL_SCALE=100
+    NO_SERIALIZATION=1
+    NDEBUG=1
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG " /std:c++17 /Od /DEBUG /Zi ")
+target_compile_options(
+    WindowDemo PUBLIC 
+        ${COMPILE_FLAGS}
+)

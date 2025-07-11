@@ -1,123 +1,63 @@
 #include <IndieGoWindow.h>
 #include <IndieGoUI.h>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <default_pipeline.h>
+#include <memory>
 
-// Plain simple code for window creation
-// Created window will hold a widget
-#define WIDTH 1280
-#define HEIGHT 800
-
-GLFWwindow * screen;
-
-using namespace IndieGo::Win;
+using namespace IndieGo;
+using namespace IndieGo::vkI;
 using namespace IndieGo::UI;
+using namespace std;
 
-extern Manager GUI;
-#include <iostream>
+#ifndef WIDTH 
+#define WIDTH 1920
+#endif
 
-std::vector<std::string> exampleLogText  = {
-    "Hello! This is general IndieGoWindow log.",
-    "Any entity, that uses IndieGo::Win::Window,",
-    "may print there it's events, and this data will",
-    "stay on screen until application is running!"
+#ifndef HEIGHT 
+#define HEIGHT 1080
+#endif
+
+class WindowExampleApp : public App {
+    shared_ptr<DefaultRenderer> renderer;
+    unique_ptr<ScreenQuadShader> shader;
+    public:
+        void initRenderingPipelines() override {
+            renderer = make_shared<DefaultRenderer>(appWindow.window, false);
+            renderer->init();
+            shader = make_unique<ScreenQuadShader>(
+                vkRenderer::device,
+                vkRenderer::swapChainImagesCount,
+                renderer->renderPass, 
+                vector<VkBuffer>{},
+                &renderer->textureImageViews,
+                renderer->textureSamplers
+            );
+            string shader_path = home_dir.append("..").append("..").append("screen_quad").string();
+            shader->load(
+                (shader_path + "/vert.spv").c_str(), 
+                (shader_path + "/frag.spv").c_str()
+            );
+            uiCanvHolder = renderer;
+            renderer->tex_user_shader = shader.get();
+        };
+
+        void processFrame() override {
+            appWindow.printOnScreen("FPS: " + to_string(appWindow.fps));
+        };
+
+        void drawAppData() override {
+            // rendering of final image
+            VkCommandBuffer frameCB = renderer->commandBuffers[vkRenderer::currFrame];
+            renderer->beginRecordCommandBuffer(frameCB);
+            renderer->beginRenderPass(frameCB, shader.get());
+            renderer->drawCommands(frameCB);
+            renderer->endRecordCommandBuffer(frameCB);
+            renderer->submitQueue(frameCB, true);
+        };
 };
 
-#define GLFW_GAMEPAD_BUTTON_A               0
-#define GLFW_GAMEPAD_BUTTON_B               1
-#define GLFW_GAMEPAD_BUTTON_X               2
-#define GLFW_GAMEPAD_BUTTON_Y               3
-#define GLFW_GAMEPAD_BUTTON_LEFT_BUMPER     4
-#define GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER    5
-#define GLFW_GAMEPAD_BUTTON_BACK            6
-#define GLFW_GAMEPAD_BUTTON_START           7
-#define GLFW_GAMEPAD_BUTTON_GUIDE           8
-#define GLFW_GAMEPAD_BUTTON_LEFT_THUMB      9
-#define GLFW_GAMEPAD_BUTTON_RIGHT_THUMB     10
-#define GLFW_GAMEPAD_BUTTON_DPAD_UP         11
-#define GLFW_GAMEPAD_BUTTON_DPAD_RIGHT      12
-#define GLFW_GAMEPAD_BUTTON_DPAD_DOWN       13
-#define GLFW_GAMEPAD_BUTTON_DPAD_LEFT       14
-#define GLFW_GAMEPAD_BUTTON_LAST            GLFW_GAMEPAD_BUTTON_DPAD_LEFT
-
-#define BUTTON_CROSS       GLFW_GAMEPAD_BUTTON_A
-#define BUTTON_CIRCLE      GLFW_GAMEPAD_BUTTON_B
-#define BUTTON_SQUARE      GLFW_GAMEPAD_BUTTON_X
-#define BUTTON_TRIANGLE    GLFW_GAMEPAD_BUTTON_Y
-
-#define AXIS_LEFT_X        0
-#define AXIS_LEFT_Y        1
-#define AXIS_RIGHT_X       2
-#define AXIS_RIGHT_Y       3
-#define AXIS_LEFT_TRIGGER  4
-#define AXIS_RIGHT_TRIGGER 5
-#define AXIS_LAST          AXIS_RIGHT_TRIGGER
-
-int main(){
-  	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-#ifdef __APPLE__
-  /* We need to explicitly ask for a 3.2 context on OS X */
-    glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#else
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#endif
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    Window mainWin(WIDTH, HEIGHT);
-    Window * refWin = &mainWin;
-    glViewport(0, 0, WIDTH, HEIGHT);
-
-
-    // Printing in screen log widget
-    for (auto line : exampleLogText) {
-        mainWin.printInLog(line);
-    }
-    mainWin.keyboard.keys[GLFW_KEY_F].pressCallback = {
-        nullptr,
-        [refWin](void*) {
-            refWin->flushSystemLog("IndieGoWin.log");
-        }
-    };
-
-    std::string checkVal;
-    double lastScrollOffset = 0;
-    while (!glfwWindowShouldClose(mainWin.getScreen())) {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        // obligatory call
-        mainWin.onFrameStart();
-
-        checkVal.clear();
-        for (auto keyval : mainWin.keyboard.keys){
-            checkVal.push_back(keyval.first);
-            checkVal += ": " + std::to_string(keyval.second.pressed) + " ";
-        }
-        mainWin.printOnScreen(checkVal);
-
-        // Display input data on screen
-        mainWin.printOnScreen(mainWin.name);
-
-        if (Window::main_joystick != -1) {
-            mainWin.printOnScreen("cross: " + std::to_string(mainWin.joystick_state[Window::main_joystick][BUTTON_CROSS].pressed));
-            mainWin.printOnScreen("left x axis:" + std::to_string(mainWin.joystick_state[Window::main_joystick].sticks_input[Gamepad::AXES::lx]));
-            mainWin.printOnScreen("left y axis:" + std::to_string(mainWin.joystick_state[Window::main_joystick].sticks_input[Gamepad::AXES::ly]));
-
-            mainWin.printOnScreen("right x axis:" + std::to_string(mainWin.joystick_state[Window::main_joystick].sticks_input[Gamepad::AXES::rx]));
-            mainWin.printOnScreen("right y axis:" + std::to_string(mainWin.joystick_state[Window::main_joystick].sticks_input[Gamepad::AXES::ry]));
-        }
-
-        GUI.drawFrameStart(mainWin.name);
-        GUI.displayWidgets(mainWin.name);
-        GUI.drawFrameEnd(mainWin.name);
-
-        // obligatory call
-        mainWin.onFrameEnd();
-
-        glfwSwapBuffers(mainWin.getScreen());
-	    glfwPollEvents();
-    }
+int main() {
+    WindowExampleApp app;
+    app.init();
+    app.run();
     return 0;
 }
