@@ -30,6 +30,7 @@ using namespace IndieGo::Win;
 Keyboard Window::keyboard = {};
 Mouse Window::mouse = {};
 Gamepad Window::joystick_state[MAX_GAMEPADS] = {};
+extern Manager GUI;
 
 void IndieGo::Win::window_focus_callback(GLFWwindow* window, int focused) {}
 
@@ -338,7 +339,8 @@ void IndieGo::Win::Window::init() {
     screenLog.style.elements[UI_COLOR_TEXT].b = 255;
     screenLog.forceNoFocus = true;
     screenLog.name = screenLogName;
-    GUI->addWidget(screenLog);
+    _GUI = &GUI;
+    _GUI->addWidget(screenLog);
     logLineName = name + screen_log_line;
 
     // initialize frame time here, to have sane duration

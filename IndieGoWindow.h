@@ -133,7 +133,7 @@ namespace IndieGo {
             int width, height;
 
             GLFWwindow * window = nullptr;
-            UI::Manager * GUI = nullptr;
+            UI::Manager * _GUI = nullptr;
             void create(const int & width_ = 1280, const int & height_ = 800, const std::string & name_ = "IndieGo Window", bool fullscreen = false);
             void init();
             // Removes widgets and win ptr from GUI manager
