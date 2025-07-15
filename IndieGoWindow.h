@@ -202,6 +202,7 @@ namespace IndieGo {
         static Win::Window appWindow;
         virtual void init();
         virtual void initRenderingPipelines() = 0;
+        virtual void initAppData() {};
         virtual void drawFrame();
         virtual void drawAppData() = 0;
         virtual void processFrame() = 0;

@@ -5,7 +5,6 @@
 #include <GLFW/glfw3.h>
 
 #include <fstream>
-// #include <memory>
 #include <iostream>
 
 // on-screen auto logging, FPS counter
@@ -38,6 +37,7 @@ void IndieGo::Win::mouse_button_callback(GLFWwindow* window, int button, int act
     // don't process mouse clicks, if mouse is over any widget, but screen log.
     if (action) {
         if (Manager::hoveredWidget && Manager::hoveredWidget->name != App::appWindow.name + "_screenLog"){
+            Manager::mouse_button(window, button, action, mods);
             return;
         }
         if (Window::mouse[button].pressCallback.second)
@@ -118,6 +118,8 @@ void IndieGo::Win::key_callback(GLFWwindow* window, int key, int scancode, int a
     }
     if (Window::keyCallback)
         Window::keyCallback(key);
+    
+    Manager::key_input(window, key, scancode, action, mods);
 }
 
 void IndieGo::Win::joystick_callback(int jid, int _event) {
@@ -161,12 +163,15 @@ void IndieGo::Win::scroll_callback(GLFWwindow* window, double xoffset, double yo
 
     // don't process scroll, if mouse is over any widget, but screen log.
     if (Manager::hoveredWidget && Manager::hoveredWidget->name != App::appWindow.name + "_screenLog") {
+        Manager::scroll(window, xoffset, yoffset);
         return;
     }
     App::appWindow.scrollOffset = yoffset;
 }
 
-void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {}
+void IndieGo::Win::char_callback(GLFWwindow* window, unsigned int codepoint) {
+    Manager::char_input(window, codepoint);
+}
 
 void IndieGo::Win::window_iconify_callback(GLFWwindow* window, int iconified) {}
 
@@ -440,6 +445,7 @@ void IndieGo::App::init() {
     vkI::window = appWindow.window;
     initRenderingPipelines();
     Manager::init(vkI::window, uiCanvHolder);
+    initAppData();
     appWindow.init();
 }
 
