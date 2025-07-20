@@ -390,7 +390,7 @@ void IndieGo::App::initLocale() {
 };
 
 
-void IndieGo::App::initHomedir() {
+void IndieGo::App::initHomedirs() {
 #ifdef _WIN32
     TCHAR binary_path_[MAX_PATH] = { 0 };
     GetModuleFileName(NULL, binary_path_, MAX_PATH);
@@ -413,6 +413,11 @@ void IndieGo::App::initHomedir() {
         mappings_data.read(mappings, size);
         glfwUpdateGamepadMappings(mappings);
     }
+
+    project_dir = getenv("PROJECT_DIR");
+    std::cout << "Using PROJECT_DIR: " << project_dir << '\n' << std::flush;
+    scenes_dir = project_dir + "/Scenes/";
+    common_dir = scenes_dir + "/common/";
 }
 
 void IndieGo::App::run() {
@@ -441,13 +446,13 @@ void IndieGo::App::init() {
     vkRenderer::resizeCallback = resizeUI;
     appWindow.create(WIDTH, HEIGHT);
     initLocale();
-    initHomedir();
+    initHomedirs();
 
     vkI::window = appWindow.window;
     initRenderingPipelines();
     Manager::init(vkI::window, uiCanvHolder);
-    initAppData();
     appWindow.init();
+    initAppData();
 }
 
 void IndieGo::App::drawFrame() {

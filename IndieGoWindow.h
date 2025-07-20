@@ -194,12 +194,15 @@ namespace IndieGo {
         LANG_LOCALE locale = LANG_LOCALE::rus;
         protected:
             void initLocale();
-            void initHomedir();
+            void initHomedirs();
             void loadMappings();
             std::shared_ptr<vkI::vkRenderer> uiCanvHolder;
 
         public:
         fs::path home_dir, binary_path;
+        std::string project_dir = "";
+        std::string common_dir = "";
+        std::string scenes_dir = "";
         static Win::Window appWindow;
         virtual void init();
         virtual void initRenderingPipelines() = 0;
