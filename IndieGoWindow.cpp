@@ -346,6 +346,7 @@ void IndieGo::Win::Window::init() {
     screenLog.name = screenLogName;
     _GUI = &GUI;
     _GUI->addWidget(screenLog);
+    _GUI->ignoreWidgets.insert(screenLogName);
     logLineName = name + screen_log_line;
 
     // initialize frame time here, to have sane duration

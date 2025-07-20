@@ -48,8 +48,9 @@ class WindowExampleApp : public App {
             // rendering of final image
             VkCommandBuffer frameCB = renderer->commandBuffers[vkRenderer::currFrame];
             renderer->beginRecordCommandBuffer(frameCB);
-            renderer->beginRenderPass(frameCB, shader.get());
+            renderer->beginRenderPass(frameCB, vkRenderer::imageIndex, shader.get());
             renderer->drawCommands(frameCB);
+            vkCmdEndRenderPass(frameCB);
             renderer->endRecordCommandBuffer(frameCB);
             renderer->submitQueue(frameCB, true);
         };
