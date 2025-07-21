@@ -414,7 +414,8 @@ void IndieGo::App::initHomedirs() {
         glfwUpdateGamepadMappings(mappings);
     }
 
-    project_dir = getenv("PROJECT_DIR");
+    // project_dir = getenv("PROJECT_DIR");
+    project_dir = home_dir.string();
     std::cout << "Using PROJECT_DIR: " << project_dir << '\n' << std::flush;
     scenes_dir = project_dir + "/Scenes/";
     common_dir = scenes_dir + "/common/";
