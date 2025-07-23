@@ -391,15 +391,7 @@ void IndieGo::App::initLocale() {
 
 
 void IndieGo::App::initHomedirs() {
-#ifdef _WIN32
-    TCHAR binary_path_[MAX_PATH] = { 0 };
-    GetModuleFileName(NULL, binary_path_, MAX_PATH);
-    binary_path = std::string(binary_path_);
-
-    SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-#else
     home_dir = binary_path.parent_path();
-#endif
     std::cout << "IndieGo::App homedir is " << home_dir.string() << std::endl;
 
     // try loading mappings
