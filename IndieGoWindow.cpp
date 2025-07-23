@@ -418,6 +418,7 @@ void IndieGo::App::initHomedirs() {
     std::cout << "Using PROJECT_DIR: " << project_dir << '\n' << std::flush;
     scenes_dir = project_dir + "/Scenes/";
     common_dir = scenes_dir + "/common/";
+    Manager::project_dir = project_dir;
 }
 
 void IndieGo::App::run() {
