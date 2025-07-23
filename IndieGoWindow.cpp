@@ -397,9 +397,8 @@ void IndieGo::App::initHomedirs() {
     binary_path = std::string(binary_path_);
 
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-    home_dir = binary_path.parent_path();
 #else
-    home_dir = fs::current_path();
+    home_dir = binary_path.parent_path();
 #endif
     std::cout << "IndieGo::App homedir is " << home_dir.string() << std::endl;
 
